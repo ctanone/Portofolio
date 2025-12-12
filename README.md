@@ -3,5 +3,5 @@
 I’m a student at **Petra Christian University**.  
 Interests: **Power Electronics**, **Artificial Intelligence**, and **Cybersecurity**.
 
-📫 Contact: your.email@example.com  
-🌐 LinkedIn: https://linkedin.com/in/YOUR_LINK
+📫 Contact: ctanone@gmail.com 
+🌐 LinkedIn: linkedin.com/in/christopher-tanone-1a601b229
