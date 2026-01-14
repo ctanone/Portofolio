@@ -1,0 +1,27 @@
+{
+  "name": "workrepo",
+  "version": "1.0.0",
+  "description": "I’m a student at **Petra Christian University**.  \r Interests: **Power Electronics**, **Artificial Intelligence**, and **Cybersecurity**.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ctanone/Portofolio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ctanone/Portofolio/issues"
+  },
+  "homepage": "https://github.com/ctanone/Portofolio#readme",
+  "devDependencies": {
+    "electron": "^39.2.7"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

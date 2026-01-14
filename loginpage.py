@@ -11,7 +11,7 @@ app = customtkinter.CTk()
 app.geometry("400x500")
 app.title("Login Page")
 # Load and set background image
-bg_image = ImageTk.PhotoImage(Image.open("background.jpg").resize((400, 500))
+bg_image = ImageTk.PhotoImage(Image.open("pattgit ern.png").resize((400, 500)))
 
 #button_image = ImageTk.PhotoImage(Image.open("login_icon.png").resize((100, 100)))
 app.mainloop()
