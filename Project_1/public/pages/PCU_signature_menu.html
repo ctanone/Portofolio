@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/menu.css"> 
+  <title>Main Menu</title>
+    <style>
+      body {
+        font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+    <!-- Logo Section -->
+    <div class="logo-container">
+      <img src="../assets/images/pcu-logo.png" alt="Petra Christian University Logo" class="logo-image">
+    </div>
+
+    <div class="menu-title">
+      <h1 style="color: rgb(1, 1, 1); text-align: left; padding-top: 125px; padding-left: 75px;">Welcome, <span id="username">User</span></h1>  
+      
+    </div>
+
+    <!-- GUI Boxes Section -->
+    <div class="boxes-container">
+      <div class="gui-box" onclick="window.location.href='document_verify.html'">
+        <div class="box-icon">🔍</div>
+        <h3>Verify Document</h3>
+        <p>OCR + QR verification</p>
+      </div>
+      <div class="gui-box" onclick="window.location.href='signatures.html'">
+        <div class="box-icon">✍️</div>
+        <h3>Signatures</h3>
+        <p>Digital signature tools</p>
+      </div>
+      <div class="gui-box" onclick="window.location.href='file_integrity.html'">
+        <div class="box-icon">🛡️</div>
+        <h3>Check Integrity</h3>
+        <p>Verify file authenticity</p>
+      </div>
+      <div class="gui-box">
+        <div class="box-icon">⚙️</div>
+        <h3>Settings</h3>
+        <p>Configure preferences</p>
+      </div>
+      <div class="gui-box">
+        <div class="box-icon">📊</div>
+        <h3>Reports</h3>
+        <p>View analytics & reports</p>
+      </div>
+    </div>
+
+    <!-- QR Tampering Alerts Section -->
+    <div class="alerts-section">
+      <div class="alerts-header">
+        <h2>🔔 Security Alerts</h2>
+        <span class="alert-count" id="alertCount">0</span>
+      </div>
+      <div class="alerts-list" id="alertsList">
+        <!-- Alerts will be loaded dynamically -->
+        <div class="alert-item alert-critical">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">QR Code Manipulation Detected</div>
+            <div class="alert-details">
+              <span class="alert-doc">Document ID: DOC-2026-0042</span>
+              <span class="alert-type">Type: Image Editing (Photoshop)</span>
+            </div>
+            <div class="alert-meta">
+              <span class="alert-time">2 minutes ago</span>
+              <span class="alert-ip">IP: 192.168.1.105</span>
+            </div>
+          </div>
+          <button class="alert-action" onclick="viewAlertDetails('1')">View</button>
+        </div>
+
+        <div class="alert-item alert-warning">
+          <div class="alert-icon">🔄</div>
+          <div class="alert-content">
+            <div class="alert-title">Document ID Mismatch</div>
+            <div class="alert-details">
+              <span class="alert-doc">Scanned: DOC-2026-0038 → Expected: DOC-2026-0015</span>
+              <span class="alert-type">Type: QR Code Reused</span>
+            </div>
+            <div class="alert-meta">
+              <span class="alert-time">15 minutes ago</span>
+              <span class="alert-ip">IP: 192.168.1.87</span>
+            </div>
+          </div>
+          <button class="alert-action" onclick="viewAlertDetails('2')">View</button>
+        </div>
+
+        <div class="alert-item alert-critical">
+          <div class="alert-icon">🚨</div>
+          <div class="alert-content">
+            <div class="alert-title">Signature Hash Mismatch</div>
+            <div class="alert-details">
+              <span class="alert-doc">Document ID: DOC-2026-0029</span>
+              <span class="alert-type">Type: Tampered QR Payload</span>
+            </div>
+            <div class="alert-meta">
+              <span class="alert-time">1 hour ago</span>
+              <span class="alert-ip">IP: 10.0.0.45</span>
+            </div>
+          </div>
+          <button class="alert-action" onclick="viewAlertDetails('3')">View</button>
+        </div>
+
+        <div class="alert-item alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <div class="alert-title">Multiple Scan Attempts</div>
+            <div class="alert-details">
+              <span class="alert-doc">Document ID: DOC-2026-0051</span>
+              <span class="alert-type">Type: 5 scans in 2 minutes</span>
+            </div>
+            <div class="alert-meta">
+              <span class="alert-time">3 hours ago</span>
+              <span class="alert-ip">IP: 192.168.2.200</span>
+            </div>
+          </div>
+          <button class="alert-action" onclick="viewAlertDetails('4')">View</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/menu.js"></script>
+
+    <div class="cube-1"></div>
+    
+  </body>     
+</html>  

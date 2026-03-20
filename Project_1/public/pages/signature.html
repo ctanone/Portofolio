@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signature</title> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white; padding: 20px;
+            display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .pcu-logo { width: 80px; height: 80px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 10px; flex-shrink: 0; }
+        .pcu-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .header-title h1 { font-size: 24px; font-weight: bold; }
+        .header-title p { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+
+        .text-info { padding: 20px; background: #f8f9fa; border-bottom: 2px solid #ddd; }
+        .text-info h1 { font-size: 20px; color: #333; }
+
+        section:last-child { padding: 20px; background: white; min-height: calc(100vh - 200px); }
+
+        .container-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+
+        .pdf-view { border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .pdf-view input[type="file"] { padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 100%; font-size: 14px; cursor: pointer; }
+        .pdf-controls { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+        .signer-select { flex: 1; min-width: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: white; cursor: pointer; }
+        .signer-select:focus { outline: none; border-color: #007bff; }
+
+        .add-qr-btn, .embed-btn, .reset-btn {
+            padding: 10px 15px; border: none; cursor: pointer; border-radius: 5px;
+            font-weight: 600; transition: all 0.3s ease; white-space: nowrap; font-size: 13px; flex: 1; min-width: 120px;
+        }
+        .add-qr-btn { background: #ffc107; color: black; }
+        .add-qr-btn:hover:not(:disabled) { background: #e0a800; transform: translateY(-2px); }
+        .add-qr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .embed-btn { background: #28a745; color: white; }
+        .embed-btn:hover { background: #218838; transform: translateY(-2px); }
+        .reset-btn { background: #dc3545; color: white; }
+        .reset-btn:hover { background: #c82333; transform: translateY(-2px); }
+
+        .pdf-pages-container {
+            display: flex; flex-direction: column; gap: 15px;
+            max-height: 550px; overflow-y: auto; padding: 10px;
+            border: 2px dashed #007bff; border-radius: 5px; background: #f0f7ff;
+            flex: 1; margin: 10px 0;
+        }
+        .pdf-pages-container::-webkit-scrollbar { width: 8px; }
+        .pdf-pages-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 5px; }
+        .pdf-pages-container::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; }
+
+        .pdf-page-item { position: relative; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: white; }
+        .pdf-page-item canvas { display: block; max-width: 100%; height: auto; width: 100%; }
+
+        .draggable-qr { position: absolute; width: 80px; height: 80px; cursor: move; border: 2px dashed #007bff; background: rgba(0,123,255,0.1); border-radius: 5px; transition: box-shadow 0.2s ease; }
+        .draggable-qr:hover { box-shadow: 0 0 15px rgba(0,123,255,0.7); }
+        .draggable-qr img { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; pointer-events: none; }
+
+        /* Label on QR overlay */
+        .draggable-qr .qr-label { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #007bff; white-space: nowrap; font-weight: 600; background: white; padding: 1px 4px; border-radius: 3px; }
+
+        .pdf-navigation { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .pdf-navigation button { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .pdf-navigation button:hover { background: #0056b3; transform: translateY(-2px); }
+        #page-info { font-weight: 600; color: #333; min-width: 150px; text-align: center; padding: 5px 10px; background: white; border-radius: 5px; border: 1px solid #ddd; }
+
+        .qr-generator { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; max-height: 750px; display: flex; flex-direction: column; }
+        .qr-generator h1 { margin: 0 0 20px 0; font-size: 18px; color: #333; text-align: center; }
+
+        .tabs-navigation { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
+        .tab-btn { padding: 10px 20px; background: #f0f0f0; border: none; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: 500; transition: all 0.3s ease; font-size: 14px; }
+        .tab-btn:hover { background: #e0e0e0; }
+        .tab-btn.active { background: #007bff; color: white; }
+        .add-tab-btn { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: 500; transition: all 0.3s ease; margin-left: auto; font-size: 14px; }
+        .add-tab-btn:hover { background: #218838; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        .tab-content input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; box-sizing: border-box; transition: border-color 0.3s ease; }
+        .tab-content input:focus { outline: none; border-color: #007bff; }
+
+        .qrcode-container { display: flex; justify-content: center; padding: 20px; background: #f8f9fa; border-radius: 5px; margin: 15px 0; min-height: 170px; align-items: center; }
+        .logo-upload-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 8px 10px; background: #f0f7ff; border: 1px dashed #007bff; border-radius: 5px; }
+        .logo-upload-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #007bff; white-space: nowrap; }
+        .logo-upload-label span { background: #007bff; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
+        .logo-upload-label input[type="file"] { display: none; }
+        .logo-filename { font-size: 12px; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .generate-btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 14px; }
+        .generate-btn:hover { background: #0056b3; transform: translateY(-2px); }
+
+        /* Placing mode indicator */
+        .placing-indicator { display: none; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 8px 12px; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #856404; text-align: center; }
+        .placing-indicator.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 1024px) { .container-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .header { flex-direction: column; text-align: center; } .pdf-controls { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="pcu-logo">
+            <img src="../assets/images/pcu.png" alt="PCU Logo" onerror="this.style.display='none'">
+        </div>
+        <div class="header-title">
+            <h1>Petra Christian University</h1>
+            <p>Digital Signature Page</p>
+        </div>
+    </header>
+   
+    <section>
+        <div class="text-info">
+            <h1>PDF Viewer - Add & Position QR Codes</h1>
+        </div>
+    </section>
+
+    <section>
+        <div class="container-2">
+            <div class="pdf-view">     
+                <input type="file" id="pdf-file" accept="application/pdf">
+                
+                <div class="placing-indicator" id="placing-indicator">
+                    🎯 Click anywhere on the PDF to place the QR code
+                </div>
+
+                <div class="pdf-controls">
+                    <select id="signer-select" class="signer-select">
+                        <option value="">-- Select Signer --</option>
+                    </select>
+                    <button id="add-qr-btn" class="add-qr-btn" disabled>+ Add QR to PDF</button>
+                    <button id="embed-qr-btn" class="embed-btn">Save PDF</button>
+                    <button id="reset-positions-btn" class="reset-btn">Reset All</button>
+                </div>
+
+                <div class="pdf-pages-container" id="pdf-pages-container"></div>
+
+                <div class="pdf-navigation">
+                    <button id="prev-page-btn">← Previous</button>
+                    <span id="page-info">Page 0 of 0</span>
+                    <button id="next-page-btn">Next →</button>
+                </div>
+            </div>
+
+            <div class="qr-generator">
+                <h1>QR Code Generator - Multi Signer</h1>
+                
+                <div class="tabs-navigation">
+                    <button class="tab-btn active" data-tab="signer-1">Signer 1</button>
+                    <button class="add-tab-btn">+ Add Signer</button>
+                </div>
+
+                <div class="tab-content active" id="signer-1">
+                    <input class="nomor" type="text" placeholder="No surat">
+                    <input class="name" type="text" placeholder="Nama">
+                    <input class="id" type="text" placeholder="NIP">
+                    <div class="logo-upload-row">
+                        <label class="logo-upload-label"><span>Center Logo</span>
+                            <input class="logo-upload" type="file" accept="image/*">
+                        </label>
+                        <span class="logo-filename">Using default PCU logo</span>
+                    </div>
+                    <div class="image qrcode-container"></div>
+                    <button class="generate-btn">Generate QR Code</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const RENDER_SCALE = 1.5; // Scale used for rendering PDF to canvas
+        // QR overlay size in CSS display pixels (visual size on screen)
+        const QR_DISPLAY_PX = 80;
+
+        let signerCount = 1;
+        let pdfFile = null;
+        let pdfDocObj = null; // pdf.js doc object
+        let currentPageNum = 0;
+        let totalPages = 0;
+        // qrPositions stores position as RATIOS (0–1) of the display container + pageNum
+        // { signerIndex: { xRatio, yRatio, pageNum } }
+        let qrPositions = {};
+        let draggingQR = null;
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let isAddingQR = false;
+        let selectedSignerIndex = null;
+
+        // --- Tab Switching ---
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('tab-btn')) {
+                const tabId = e.target.getAttribute('data-tab');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            }
+        });
+
+        // --- Add Signer Tab ---
+        document.querySelector('.add-tab-btn').addEventListener('click', function() {
+            signerCount++;
+            const newTabId = `signer-${signerCount}`;
+
+            const newBtn = document.createElement('button');
+            newBtn.className = 'tab-btn';
+            newBtn.setAttribute('data-tab', newTabId);
+            newBtn.textContent = `Signer ${signerCount}`;
+            this.parentNode.insertBefore(newBtn, this);
+
+            const newContent = document.createElement('div');
+            newContent.className = 'tab-content';
+            newContent.id = newTabId;
+            newContent.innerHTML = `
+                <input class="nomor" type="text" placeholder="No surat">
+                <input class="name" type="text" placeholder="Nama">
+                <input class="id" type="text" placeholder="NIP">
+                <div class="logo-upload-row">
+                    <label class="logo-upload-label"><span>Center Logo</span>
+                        <input class="logo-upload" type="file" accept="image/*">
+                    </label>
+                    <span class="logo-filename">Using default PCU logo</span>
+                </div>
+                <div class="image qrcode-container"></div>
+                <button class="generate-btn">Generate QR Code</button>
+            `;
+            document.querySelector('.qr-generator').appendChild(newContent);
+            updateSignerSelect();
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            newBtn.classList.add('active');
+            newContent.classList.add('active');
+        });
+
+        function updateSignerSelect() {
+            const select = document.getElementById('signer-select');
+            select.innerHTML = '<option value="">-- Select Signer --</option>';
+            document.querySelectorAll('.tab-content').forEach((tab, index) => {
+                const name = tab.querySelector('.name').value || `Signer ${index + 1}`;
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        // --- Logo upload: update filename label and store dataURL ---
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('logo-upload')) {
+                const file = e.target.files[0];
+                const row = e.target.closest('.logo-upload-row');
+                const label = row.querySelector('.logo-filename');
+                if (file) {
+                    label.textContent = file.name;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        e.target.dataset.logoDataUrl = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    label.textContent = 'Using default PCU logo';
+                    delete e.target.dataset.logoDataUrl;
+                }
+            }
+        });
+
+        // --- Generate QR with PCU logo in center ---
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('generate-btn')) {
+                const tab = e.target.closest('.tab-content');
+                const nomor = tab.querySelector('.nomor').value;
+                const name = tab.querySelector('.name').value;
+                const id = tab.querySelector('.id').value;
+                const qrContainer = tab.querySelector('.qrcode-container');
+
+                qrContainer.innerHTML = '';
+                const qrText = `https://petra.ac.id?nomor=${encodeURIComponent(nomor)}&name=${encodeURIComponent(name)}&id=${encodeURIComponent(id)}`;
+
+                const qr = new QRCode(qrContainer, {
+                    text: qrText || ' ',
+                    width: 150,
+                    height: 150,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                // After QRCode renders its canvas, overlay logo in center
+                setTimeout(() => {
+                    const qrCanvas = qrContainer.querySelector('canvas');
+                    if (!qrCanvas) return;
+
+                    const ctx = qrCanvas.getContext('2d');
+                    const logoSize = 56;  // enlarged logo
+                    const padding = 0;    // no padding/background
+                    const cx = (qrCanvas.width - logoSize) / 2;
+                    const cy = (qrCanvas.height - logoSize) / 2;
+
+                    // Determine logo source: uploaded file > PCU default
+                    const uploadInput = tab.querySelector('.logo-upload');
+                    const customDataUrl = uploadInput && uploadInput.dataset.logoDataUrl;
+                    const PCU_LOGO_DEFAULT = '../public/assets/images/pcu-logo.png';
+                    const logoSrc = customDataUrl || PCU_LOGO_DEFAULT;
+
+                    function drawLogo(src) {
+                        const logo = new Image();
+                        logo.crossOrigin = 'anonymous';
+                        logo.src = src;
+                        logo.onload = function() {
+                            // Clear the area with white (clean background, no colored box)
+                            ctx.clearRect(cx - 2, cy - 2, logoSize + 4, logoSize + 4);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(cx - 2, cy - 2, logoSize + 4, logoSize + 4);
+                            ctx.drawImage(logo, cx, cy, logoSize, logoSize);
+                        };
+                        logo.onerror = function() {
+                            if (src !== PCU_LOGO_DEFAULT) {
+                                // If custom logo fails, try PCU default
+                                drawLogo(PCU_LOGO_DEFAULT);
+                            } else {
+                                // Final fallback: PCU text only, no background box
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(cx - 2, cy - 2, logoSize + 4, logoSize + 4);
+                                ctx.fillStyle = '#003087';
+                                ctx.font = `bold ${logoSize * 0.4}px Arial`;
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText('PCU', cx + logoSize / 2, cy + logoSize / 2);
+                            }
+                        };
+                    }
+                    drawLogo(logoSrc);
+                }, 100);
+
+                updateSignerSelect();
+            }
+        });
+
+        // --- Upload PDF ---
+        document.getElementById('pdf-file').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            pdfFile = file;
+            qrPositions = {};
+            currentPageNum = 0;
+
+            const fileURL = URL.createObjectURL(file);
+            await renderAllPages(fileURL);
+            document.getElementById('add-qr-btn').disabled = false;
+        });
+
+        // --- Render All Pages ---
+        async function renderAllPages(fileURL) {
+            try {
+                pdfDocObj = await pdfjsLib.getDocument(fileURL).promise;
+                totalPages = pdfDocObj.numPages;
+                const container = document.getElementById('pdf-pages-container');
+                container.innerHTML = '';
+
+                let displayPageIdx = 0; // track only visible pages
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    const page = await pdfDocObj.getPage(pageNum);
+                    const baseViewport = page.getViewport({ scale: 1 });
+
+                    // Skip blank/invisible pages (height or width < 10 pts)
+                    if (baseViewport.width < 10 || baseViewport.height < 10) continue;
+
+                    const pageContainer = document.createElement('div');
+                    pageContainer.className = 'pdf-page-item';
+                    pageContainer.dataset.pageNum = displayPageIdx;
+                    pageContainer.dataset.pdfPageNum = pageNum; // real PDF page number for saving
+                    pageContainer.style.position = 'relative';
+
+                    const canvas = document.createElement('canvas');
+                    const viewport = page.getViewport({ scale: RENDER_SCALE });
+
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.dataset.pdfWidth = baseViewport.width;
+                    canvas.dataset.pdfHeight = baseViewport.height;
+
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                    pageContainer.appendChild(canvas);
+                    container.appendChild(pageContainer);
+                    displayPageIdx++;
+                }
+                totalPages = displayPageIdx; // update to actual visible page count
+
+                // Re-draw any existing QR overlays
+                redrawAllQROverlays();
+                updatePageInfo();
+            } catch (err) {
+                console.error('PDF load error:', err);
+                alert('Error loading PDF: ' + err.message);
+            }
+        }
+
+        // --- Redraw all QR overlays ---
+        function redrawAllQROverlays() {
+            document.querySelectorAll('.draggable-qr').forEach(el => el.remove());
+
+            document.querySelectorAll('.tab-content').forEach((tab, index) => {
+                const qrCanvas = tab.querySelector('.qrcode-container canvas');
+                if (qrCanvas && qrPositions[index] !== undefined) {
+                    const pos = qrPositions[index];
+                    const pageContainer = document.querySelector(`[data-page-num="${pos.pageNum}"]`);
+                    if (pageContainer) {
+                        const { x, y } = ratioToDisplayPx(pos.xRatio, pos.yRatio, pageContainer);
+                        addQROverlay(pageContainer, qrCanvas, index, x, y, tab);
+                    }
+                }
+            });
+        }
+
+        // --- Add QR overlay div to a page container ---
+        // x, y are CSS display pixels (left/top of overlay within pageContainer)
+        function addQROverlay(pageContainer, qrCanvas, signerIndex, x, y, tab) {
+            const qrOverlay = document.createElement('div');
+            qrOverlay.className = 'draggable-qr';
+            qrOverlay.dataset.signerIndex = signerIndex;
+            qrOverlay.style.left = x + 'px';
+            qrOverlay.style.top = y + 'px';
+
+            const img = document.createElement('img');
+            img.src = qrCanvas.toDataURL();
+            qrOverlay.appendChild(img);
+
+            const label = document.createElement('div');
+            label.className = 'qr-label';
+            label.textContent = tab ? (tab.querySelector('.name').value || `Signer ${signerIndex + 1}`) : `Signer ${signerIndex + 1}`;
+            qrOverlay.appendChild(label);
+
+            pageContainer.appendChild(qrOverlay);
+            addDragListeners(qrOverlay);
+        }
+
+        // Convert stored ratio position → CSS display pixels for overlay placement
+        function ratioToDisplayPx(xRatio, yRatio, pageContainer) {
+            const rect = pageContainer.getBoundingClientRect();
+            return {
+                x: xRatio * rect.width,
+                y: yRatio * rect.height
+            };
+        }
+
+        // Convert CSS display pixel position → ratio
+        function displayPxToRatio(x, y, pageContainer) {
+            const rect = pageContainer.getBoundingClientRect();
+            return {
+                xRatio: x / rect.width,
+                yRatio: y / rect.height
+            };
+        }
+
+        // --- Place QR: enter placing mode ---
+        document.getElementById('add-qr-btn').addEventListener('click', function() {
+            const select = document.getElementById('signer-select');
+            const signerIndex = select.value;
+
+            if (signerIndex === '') { alert('Please select a signer'); return; }
+
+            const tab = document.getElementById(`signer-${parseInt(signerIndex) + 1}`);
+            const qrCanvas = tab.querySelector('.qrcode-container canvas');
+            if (!qrCanvas) { alert('Please generate QR code first'); return; }
+
+            isAddingQR = true;
+            selectedSignerIndex = parseInt(signerIndex);
+            document.body.style.cursor = 'crosshair';
+            document.getElementById('placing-indicator').classList.add('active');
+        });
+
+        // --- Click on page to place QR ---
+        document.getElementById('pdf-pages-container').addEventListener('click', function(e) {
+            if (!isAddingQR) return;
+
+            const pageContainer = e.target.closest('.pdf-page-item');
+            if (!pageContainer) return;
+
+            const rect = pageContainer.getBoundingClientRect();
+            // Center QR on click point, in CSS display pixels
+            let x = e.clientX - rect.left - QR_DISPLAY_PX / 2;
+            let y = e.clientY - rect.top - QR_DISPLAY_PX / 2;
+
+            // Clamp so QR stays within page bounds
+            x = Math.max(0, Math.min(x, rect.width - QR_DISPLAY_PX));
+            y = Math.max(0, Math.min(y, rect.height - QR_DISPLAY_PX));
+
+            const pageNum = parseInt(pageContainer.dataset.pageNum);
+
+            // Store as ratio of display container
+            const { xRatio, yRatio } = displayPxToRatio(x, y, pageContainer);
+            qrPositions[selectedSignerIndex] = { xRatio, yRatio, pageNum };
+
+            const tab = document.getElementById(`signer-${selectedSignerIndex + 1}`);
+            const qrCanvas = tab.querySelector('.qrcode-container canvas');
+
+            document.querySelectorAll(`.draggable-qr[data-signer-index="${selectedSignerIndex}"]`).forEach(el => el.remove());
+            addQROverlay(pageContainer, qrCanvas, selectedSignerIndex, x, y, tab);
+
+            isAddingQR = false;
+            selectedSignerIndex = null;
+            document.body.style.cursor = 'default';
+            document.getElementById('placing-indicator').classList.remove('active');
+        });
+
+        // Cancel placing mode on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isAddingQR) {
+                isAddingQR = false;
+                selectedSignerIndex = null;
+                document.body.style.cursor = 'default';
+                document.getElementById('placing-indicator').classList.remove('active');
+            }
+        });
+
+        // --- Drag listeners ---
+        function addDragListeners(element) {
+            element.addEventListener('mousedown', function(e) {
+                if (isAddingQR) return;
+                isDragging = true;
+                draggingQR = this;
+                dragOffsetX = e.clientX - this.getBoundingClientRect().left;
+                dragOffsetY = e.clientY - this.getBoundingClientRect().top;
+                this.style.zIndex = '1000';
+                this.style.transition = 'none';
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        }
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging || !draggingQR) return;
+            const pageContainer = draggingQR.closest('.pdf-page-item');
+            if (!pageContainer) return;
+
+            const rect = pageContainer.getBoundingClientRect();
+            let x = e.clientX - rect.left - dragOffsetX;
+            let y = e.clientY - rect.top - dragOffsetY;
+
+            // Clamp within page display bounds
+            x = Math.max(0, Math.min(x, rect.width - QR_DISPLAY_PX));
+            y = Math.max(0, Math.min(y, rect.height - QR_DISPLAY_PX));
+
+            draggingQR.style.left = x + 'px';
+            draggingQR.style.top = y + 'px';
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (!isDragging || !draggingQR) return;
+
+            const signerIndex = parseInt(draggingQR.dataset.signerIndex);
+            const x = parseFloat(draggingQR.style.left);
+            const y = parseFloat(draggingQR.style.top);
+            const pageContainer = draggingQR.closest('.pdf-page-item');
+            const pageNum = parseInt(pageContainer.dataset.pageNum);
+
+            // Store as ratio
+            const { xRatio, yRatio } = displayPxToRatio(x, y, pageContainer);
+            qrPositions[signerIndex] = { xRatio, yRatio, pageNum };
+
+            draggingQR.style.zIndex = '';
+            draggingQR.style.transition = '';
+            isDragging = false;
+            draggingQR = null;
+        });
+
+        // --- Page Navigation ---
+        document.getElementById('prev-page-btn').addEventListener('click', function() {
+            if (currentPageNum > 0) { currentPageNum--; updatePageInfo(); scrollToPage(); }
+        });
+        document.getElementById('next-page-btn').addEventListener('click', function() {
+            if (currentPageNum < totalPages - 1) { currentPageNum++; updatePageInfo(); scrollToPage(); }
+        });
+        function updatePageInfo() {
+            document.getElementById('page-info').textContent = `Page ${currentPageNum + 1} of ${totalPages}`;
+        }
+        function scrollToPage() {
+            const pg = document.querySelector(`[data-page-num="${currentPageNum}"]`);
+            if (pg) pg.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- Reset ---
+        document.getElementById('reset-positions-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all QR positions?')) {
+                qrPositions = {};
+                document.querySelectorAll('.draggable-qr').forEach(el => el.remove());
+            }
+        });
+
+        // --- Save PDF with embedded QR codes ---
+        document.getElementById('embed-qr-btn').addEventListener('click', async function() {
+            const { PDFDocument } = PDFLib;
+
+            if (!pdfFile) { alert('Please upload a PDF first'); return; }
+            if (Object.keys(qrPositions).length === 0) { alert('Please add and position at least one QR code'); return; }
+
+            try {
+                const arrayBuffer = await pdfFile.arrayBuffer();
+                const newPdfDoc = await PDFDocument.load(arrayBuffer);
+                const pdfPages = newPdfDoc.getPages();
+
+                const tabs = document.querySelectorAll('.tab-content');
+
+                for (let index = 0; index < tabs.length; index++) {
+                    const pos = qrPositions[index];
+                    if (!pos) continue;
+
+                    const tab = tabs[index];
+                    const qrCanvas = tab.querySelector('.qrcode-container canvas');
+                    if (!qrCanvas) continue;
+
+                    // Use real PDF page number if available (skipped blank pages shift index)
+                    const pageContainer = document.querySelector(`[data-page-num="${pos.pageNum}"]`);
+                    const realPageNum = pageContainer ? parseInt(pageContainer.dataset.pdfPageNum) - 1 : pos.pageNum;
+                    const page = pdfPages[realPageNum];
+                    const { width: pdfW, height: pdfH } = page.getSize();
+
+                    // QR size in PDF points: ~12% of shorter page dimension
+                    const qrSizePdf = Math.min(pdfW, pdfH) * 0.12;
+
+                    // Convert ratios directly to PDF coordinates
+                    // xRatio: 0=left, 1=right  →  pdfX = ratio * pdfW
+                    // yRatio: 0=top (display) = pdfH (pdf), 1=bottom = 0 (pdf)
+                    const pdfX = pos.xRatio * pdfW;
+                    const pdfY = pdfH - (pos.yRatio * pdfH) - qrSizePdf;
+
+                    const pngDataUrl = qrCanvas.toDataURL('image/png');
+                    const pngImage = await newPdfDoc.embedPng(pngDataUrl);
+
+                    page.drawImage(pngImage, {
+                        x: Math.max(0, Math.min(pdfX, pdfW - qrSizePdf)),
+                        y: Math.max(0, Math.min(pdfY, pdfH - qrSizePdf)),
+                        width: qrSizePdf,
+                        height: qrSizePdf
+                    });
+                }
+
+                const modifiedPdfBytes = await newPdfDoc.save();
+                const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'signed-document.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Error saving PDF: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>   

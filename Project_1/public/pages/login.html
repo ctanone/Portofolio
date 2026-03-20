@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCU Login - Petra Christian University</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Logo Section -->
+    <div class="logo-container">
+      <img src="../assets/images/pcu-logo.png" alt="Petra Christian University Logo" class="logo-image">
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+      <!-- Blockchain Tech Image -->
+      <div class="image-container">
+        <div class="blockchain-graphic">
+          <div class="grid-floor"></div>
+          <div class="cube cube-1"></div>
+          <div class="cube cube-2"></div>
+          <div class="cube cube-3"></div>
+          <div class="cube cube-4"></div>
+          <div class="cube cube-5"></div>
+          <div class="glow-line glow-line-1"></div>
+          <div class="glow-line glow-line-2"></div>
+          <div class="glow-line glow-line-3"></div>
+        </div>
+      </div>
+
+      <!-- Login Card -->
+      <div class="login-card">
+        <h1 class="login-title" id="formTitle">Login</h1>
+        
+        <form class="form" id="authForm">
+          <div class="input-group" id="usernameGroup" style="display: none;">
+            <input type="text" class="input" placeholder="Username" id="username">
+          </div>
+          
+          <div class="input-group">
+            <input type="email" class="input" placeholder="Email" id="email" required>
+          </div>
+          
+          <div class="input-group">
+            <input type="password" class="input" placeholder="Password" id="password" required>
+          </div>
+          
+          <button type="submit" class="login-button" id="submitBtn">Login</button>
+        </form>
+        
+        <div class="forgot-password">
+          <a href="#" class="forgot-link" id="toggleLink">Create Account?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/login.js"></script>
+</body>
+</html>

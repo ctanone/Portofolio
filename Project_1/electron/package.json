@@ -1,0 +1,12 @@
+{
+  "name": "pcu-login-app",
+  "version": "1.0.0",
+  "description": "PCU Login Electron App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^39.2.7"
+  }
+}
