@@ -1,12 +1,20 @@
-{% tabs %}
+<details><summary>Windows</summary>
 
-{% tab title="Windows" %} Here are the instructions for Windows {% endtab %}
+Instructions for Windows here.
 
-{% tab title="OSX" %} Here are the instructions for macOS {% endtab %}
+</details>
 
-{% tab title="Linux" %} Here are the instructions for Linux {% endtab %}
+<details><summary>macOS</summary>
 
-{% endtabs %}
+Instructions for macOS here.
+
+</details>
+
+<details><summary>Linux</summary>
+
+Instructions for Linux here.
+
+</details>
 Shield: [![CC BY-NC 4.0][cc-by-nc-shield]][cc-by-nc]
 
 This work is licensed under a
