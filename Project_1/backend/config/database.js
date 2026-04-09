@@ -10,7 +10,7 @@ const connectDB = async () => {
     console.log('MongoDB Atlas connected successfully!');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    console.warn('Continuing without database connection. Auth routes will fail until DB is reachable.');
   }
 };
 
@@ -21,7 +21,16 @@ async function getUserBytoken(token) {
     return await User.findOne({ token });
 }
 async function createUser(username, email, password) {
-  return await User.create({ username, email, password });
+  return await User.create({ username, email, password, authProvider: 'local' });
+}
+
+async function createGoogleUser(username, email, googleId) {
+  return await User.create({
+    username,
+    email,
+    googleId,
+    authProvider: 'google',
+  });
 }
 
 async function getUsersfromDatabase() {
@@ -42,6 +51,7 @@ module.exports = {
   connectDB, 
   getUserByEmail, 
   createUser, 
+  createGoogleUser,
   getUsersfromDatabase, 
   getUserFromDatabase, 
   deleteUser,

@@ -133,9 +133,46 @@ body {
   font-size: 40px;
   font-weight: 400;
   color: #1a1a2e;
-  margin-bottom: 45px;
+  margin-bottom: 8px;
   text-align: center;
   font-family: 'Crimson Text', Georgia, serif;
+}
+
+.login-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(26, 26, 46, 0.8);
+  margin-bottom: 24px;
+}
+
+.google-signin {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.separator {
+  position: relative;
+  text-align: center;
+  margin: 6px 0 18px;
+  color: rgba(26, 26, 46, 0.75);
+  font-size: 13px;
+}
+
+.separator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.separator span {
+  position: relative;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0 10px;
+  border-radius: 999px;
 }
 
 .form {
@@ -201,6 +238,18 @@ body {
 .forgot-password {
   text-align: center;
   margin-top: 22px;
+}
+
+.auth-status {
+  margin-top: 14px;
+  text-align: center;
+  color: #165f24;
+  min-height: 18px;
+  font-size: 13px;
+}
+
+.auth-status.error {
+  color: #8a1d1d;
 }
 
 .forgot-link {

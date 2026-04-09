@@ -16,9 +16,15 @@ body {
   position: relative;
   background: linear-gradient(310deg, #49649E 0%, #56A8FF 51%, #3AD0D5 100%);
 }
+
+.menu-content {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 140px 32px 40px;
+}
+
 .menu-title {
-  padding-top: 150px;
-  padding-left: 100px;
+  margin-bottom: 28px;
 }
 
 .menu-title h1 {
@@ -30,20 +36,23 @@ body {
 /* Logo Section */
 .logo-container {
   position: absolute;
-  padding-top: 30px;
-  padding-left: 25px;
+  top: 28px;
+  left: 28px;
   z-index: 10;
 }
 
 .logo-image {
-  height: 150px;
+  height: 90px;
   width: auto;
 }
 
 @media (max-width: 768px) {
+  .menu-content {
+    padding: 118px 16px 24px;
+  }
+
   .menu-title {
-    padding-top: 120px;
-    padding-left: 20px;
+    margin-bottom: 18px;
   }
   
   .menu-title h1 {
@@ -56,34 +65,18 @@ body {
 }
 /* end logo section */
 
-/* Cube feature */
-
-.cube-1 { width: 80px; height: 80px; padding-top:20px ; right: 10px; color: #000; }
-.cube-2 { width: 60px; height: 60px; top: 70%; right: 25%; animation-delay: 1s; }
-.cube-3 { width: 50px; height: 50px; top: 50%; right: 10%; animation-delay: 2s; }
-.cube-4 { width: 40px; height: 40px; top: 80%; right: 20%; animation-delay: 1.5s; }
-
-@keyframes floatCube {
-  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
-  50% { transform: translateY(-15px) rotate(5deg); opacity: 1; }
-}
-
 /* GUI Boxes Section */
 .boxes-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 30px;
-  padding: 50px 100px;
-  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 22px;
 }
 
 .gui-box {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  padding: 30px;
-  width: 220px;
-  height: 180px;
+  padding: 24px;
+  min-height: 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -118,18 +111,17 @@ body {
 
 @media (max-width: 768px) {
   .boxes-container {
-    padding: 30px 20px;
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
   
   .gui-box {
-    width: 160px;
-    height: 150px;
-    padding: 20px;
+    min-height: 138px;
+    padding: 16px;
   }
   
   .gui-box .box-icon {
-    font-size: 32px;
+    font-size: 30px;
   }
   
   .gui-box h3 {
@@ -139,7 +131,7 @@ body {
 
 /* Security Alerts Section */
 .alerts-section {
-  margin: 40px 100px;
+  margin-top: 28px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
   padding: 25px;
@@ -176,6 +168,16 @@ body {
   gap: 15px;
   max-height: 400px;
   overflow-y: auto;
+}
+
+.no-alerts {
+  text-align: center;
+  color: #666;
+  padding: 28px 16px;
+  border: 1px dashed #c9d3e8;
+  border-radius: 12px;
+  background: #f8fbff;
+  font-size: 14px;
 }
 
 .alert-item {
@@ -261,8 +263,8 @@ body {
 
 @media (max-width: 768px) {
   .alerts-section {
-    margin: 20px;
-    padding: 15px;
+    margin-top: 18px;
+    padding: 14px;
   }
   
   .alerts-header h2 {

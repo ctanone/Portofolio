@@ -50,8 +50,14 @@ const ALERT_TYPES = {
 function updateAlertCount() {
   const alertItems = document.querySelectorAll('.alert-item');
   const countBadge = document.getElementById('alertCount');
+  const noAlertsMessage = document.getElementById('noAlertsMessage');
+
   if (countBadge) {
     countBadge.textContent = alertItems.length;
+  }
+
+  if (noAlertsMessage) {
+    noAlertsMessage.style.display = alertItems.length > 0 ? 'none' : 'block';
   }
 }
 

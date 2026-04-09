@@ -40,6 +40,12 @@ app.get('/', (req, res) => {
   res.json({ message: 'Testing App Server Running' });
 });
 
+app.get('/api/config/auth', (req, res) => {
+  res.status(200).json({
+    googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  });
+});
+
 // Auth routes
 app.use('/api/auth', authRoutes);
 

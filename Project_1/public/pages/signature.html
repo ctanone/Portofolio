@@ -1,113 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>  
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Signature</title> 
+    <title>Digital Signature</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
-
-        .header {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            color: white; padding: 20px;
-            display: flex; align-items: center; gap: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .pcu-logo { width: 80px; height: 80px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 10px; flex-shrink: 0; }
-        .pcu-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .header-title h1 { font-size: 24px; font-weight: bold; }
-        .header-title p { font-size: 14px; opacity: 0.9; margin-top: 5px; }
-
-        .text-info { padding: 20px; background: #f8f9fa; border-bottom: 2px solid #ddd; }
-        .text-info h1 { font-size: 20px; color: #333; }
-
-        section:last-child { padding: 20px; background: white; min-height: calc(100vh - 200px); }
-
-        .container-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
-
-        .pdf-view { border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-        .pdf-view input[type="file"] { padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 100%; font-size: 14px; cursor: pointer; }
-        .pdf-controls { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
-        .signer-select { flex: 1; min-width: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: white; cursor: pointer; }
-        .signer-select:focus { outline: none; border-color: #007bff; }
-
-        .add-qr-btn, .embed-btn, .reset-btn {
-            padding: 10px 15px; border: none; cursor: pointer; border-radius: 5px;
-            font-weight: 600; transition: all 0.3s ease; white-space: nowrap; font-size: 13px; flex: 1; min-width: 120px;
-        }
-        .add-qr-btn { background: #ffc107; color: black; }
-        .add-qr-btn:hover:not(:disabled) { background: #e0a800; transform: translateY(-2px); }
-        .add-qr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .embed-btn { background: #28a745; color: white; }
-        .embed-btn:hover { background: #218838; transform: translateY(-2px); }
-        .reset-btn { background: #dc3545; color: white; }
-        .reset-btn:hover { background: #c82333; transform: translateY(-2px); }
-
-        .pdf-pages-container {
-            display: flex; flex-direction: column; gap: 15px;
-            max-height: 550px; overflow-y: auto; padding: 10px;
-            border: 2px dashed #007bff; border-radius: 5px; background: #f0f7ff;
-            flex: 1; margin: 10px 0;
-        }
-        .pdf-pages-container::-webkit-scrollbar { width: 8px; }
-        .pdf-pages-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 5px; }
-        .pdf-pages-container::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; }
-
-        .pdf-page-item { position: relative; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: white; }
-        .pdf-page-item canvas { display: block; max-width: 100%; height: auto; width: 100%; }
-
-        .draggable-qr { position: absolute; width: 80px; height: 80px; cursor: move; border: 2px dashed #007bff; background: rgba(0,123,255,0.1); border-radius: 5px; transition: box-shadow 0.2s ease; }
-        .draggable-qr:hover { box-shadow: 0 0 15px rgba(0,123,255,0.7); }
-        .draggable-qr img { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; pointer-events: none; }
-
-        /* Label on QR overlay */
-        .draggable-qr .qr-label { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #007bff; white-space: nowrap; font-weight: 600; background: white; padding: 1px 4px; border-radius: 3px; }
-
-        .pdf-navigation { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
-        .pdf-navigation button { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
-        .pdf-navigation button:hover { background: #0056b3; transform: translateY(-2px); }
-        #page-info { font-weight: 600; color: #333; min-width: 150px; text-align: center; padding: 5px 10px; background: white; border-radius: 5px; border: 1px solid #ddd; }
-
-        .qr-generator { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; max-height: 750px; display: flex; flex-direction: column; }
-        .qr-generator h1 { margin: 0 0 20px 0; font-size: 18px; color: #333; text-align: center; }
-
-        .tabs-navigation { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 20px; background: #f0f0f0; border: none; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: 500; transition: all 0.3s ease; font-size: 14px; }
-        .tab-btn:hover { background: #e0e0e0; }
-        .tab-btn.active { background: #007bff; color: white; }
-        .add-tab-btn { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: 500; transition: all 0.3s ease; margin-left: auto; font-size: 14px; }
-        .add-tab-btn:hover { background: #218838; }
-
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .tab-content.active { display: block; }
-        .tab-content input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; box-sizing: border-box; transition: border-color 0.3s ease; }
-        .tab-content input:focus { outline: none; border-color: #007bff; }
-
-        .qrcode-container { display: flex; justify-content: center; padding: 20px; background: #f8f9fa; border-radius: 5px; margin: 15px 0; min-height: 170px; align-items: center; }
-        .logo-upload-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 8px 10px; background: #f0f7ff; border: 1px dashed #007bff; border-radius: 5px; }
-        .logo-upload-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #007bff; white-space: nowrap; }
-        .logo-upload-label span { background: #007bff; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
-        .logo-upload-label input[type="file"] { display: none; }
-        .logo-filename { font-size: 12px; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-        .generate-btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 14px; }
-        .generate-btn:hover { background: #0056b3; transform: translateY(-2px); }
-
-        /* Placing mode indicator */
-        .placing-indicator { display: none; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 8px 12px; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #856404; text-align: center; }
-        .placing-indicator.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 1024px) { .container-2 { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .header { flex-direction: column; text-align: center; } .pdf-controls { flex-direction: column; } }
-    </style>
+    <link rel="stylesheet" href="../css/signature.css">
 </head>
 <body>
+
     <header class="header">
         <div class="pcu-logo">
             <img src="../assets/images/pcu.png" alt="PCU Logo" onerror="this.style.display='none'">
@@ -117,7 +21,7 @@
             <p>Digital Signature Page</p>
         </div>
     </header>
-   
+
     <section>
         <div class="text-info">
             <h1>PDF Viewer - Add & Position QR Codes</h1>
@@ -126,9 +30,11 @@
 
     <section>
         <div class="container-2">
-            <div class="pdf-view">     
+
+            <!-- ── PDF Panel ─────────────────────────────────────────── -->
+            <div class="pdf-view">
                 <input type="file" id="pdf-file" accept="application/pdf">
-                
+
                 <div class="placing-indicator" id="placing-indicator">
                     🎯 Click anywhere on the PDF to place the QR code
                 </div>
@@ -137,9 +43,14 @@
                     <select id="signer-select" class="signer-select">
                         <option value="">-- Select Signer --</option>
                     </select>
-                    <button id="add-qr-btn" class="add-qr-btn" disabled>+ Add QR to PDF</button>
-                    <button id="embed-qr-btn" class="embed-btn">Save PDF</button>
-                    <button id="reset-positions-btn" class="reset-btn">Reset All</button>
+                    <div class="qr-size-control">
+                        <label for="qr-size-range">QR Size</label>
+                        <input id="qr-size-range" type="range" min="50" max="180" value="80">
+                        <span id="qr-size-value">80px</span>
+                    </div>
+                    <button id="add-qr-btn"          class="add-qr-btn" disabled>+ Add QR to PDF</button>
+                    <button id="embed-qr-btn"         class="embed-btn">Save PDF</button>
+                    <button id="reset-positions-btn"  class="reset-btn">Reset All</button>
                 </div>
 
                 <div class="pdf-pages-container" id="pdf-pages-container"></div>
@@ -151,9 +62,10 @@
                 </div>
             </div>
 
+            <!-- ── QR Generator Panel ────────────────────────────────── -->
             <div class="qr-generator">
                 <h1>QR Code Generator - Multi Signer</h1>
-                
+
                 <div class="tabs-navigation">
                     <button class="tab-btn active" data-tab="signer-1">Signer 1</button>
                     <button class="add-tab-btn">+ Add Signer</button>
@@ -161,508 +73,583 @@
 
                 <div class="tab-content active" id="signer-1">
                     <input class="nomor" type="text" placeholder="No surat">
-                    <input class="name" type="text" placeholder="Nama">
-                    <input class="id" type="text" placeholder="NIP">
+                    <input class="name"  type="text" placeholder="Nama">
+                    <input class="id"    type="text" placeholder="NIP">
                     <div class="logo-upload-row">
-                        <label class="logo-upload-label"><span>Center Logo</span>
+                        <label class="logo-upload-label">
+                            <span>Center Logo</span>
                             <input class="logo-upload" type="file" accept="image/*">
                         </label>
                         <span class="logo-filename">Using default PCU logo</span>
                     </div>
                     <div class="image qrcode-container"></div>
                     <button class="generate-btn">Generate QR Code</button>
+                    <button class="download-svg-btn" type="button" disabled>Download SVG</button>
                 </div>
             </div>
+
         </div>
     </section>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    'use strict';
 
-        const RENDER_SCALE = 1.5; // Scale used for rendering PDF to canvas
-        // QR overlay size in CSS display pixels (visual size on screen)
-        const QR_DISPLAY_PX = 80;
+    // ── Constants ────────────────────────────────────────────────────────────
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let signerCount = 1;
-        let pdfFile = null;
-        let pdfDocObj = null; // pdf.js doc object
-        let currentPageNum = 0;
-        let totalPages = 0;
-        // qrPositions stores position as RATIOS (0–1) of the display container + pageNum
-        // { signerIndex: { xRatio, yRatio, pageNum } }
-        let qrPositions = {};
-        let draggingQR = null;
-        let isDragging = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-        let isAddingQR = false;
-        let selectedSignerIndex = null;
+    const PCU_LOGO_SRC  = 'data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDIwMDAuMDAwMDAwIDIwMDAuMDAwMDAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0Ij48bWV0YWRhdGE+CkNyZWF0ZWQgYnkgcG90cmFjZSAxLjE2LCB3cml0dGVuIGJ5IFBldGVyIFNlbGluZ2VyIDIwMDEtMjAxOQo8L21ldGFkYXRhPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLDIwMDAuMDAwMDAwKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIgpmaWxsPSIjMWUzYTZlIiBzdHJva2U9Im5vbmUiPjxwYXRoIGQ9Ik05Mzg1IDE4MDA0IGMtMTI5IC0xMSAtMjYwIC0yNyAtMzMwIC0zOSAtNDQgLTggLTEzNyAtMTkgLTIwNyAtMjUKLTcyIC02IC0xNTIgLTE5IC0xODMgLTMwIC0zMSAtMTEgLTExMyAtMjYgLTE4MyAtMzQgLTcwIC04IC0xNTUgLTI0IC0xODkgLTM1Ci0zNCAtMTEgLTEwMyAtMjcgLTE1NCAtMzYgLTUxIC04IC0xMTIgLTI0IC0xMzUgLTM1IC0yNCAtMTAgLTY5IC0yMiAtMTAxIC0yNQotMzIgLTQgLTg0IC0xOCAtMTE2IC0zMSAtMzEgLTE0IC05MSAtMzEgLTEzMiAtMzkgLTQwIC03IC04NCAtMjEgLTk3IC0yOSAtMTMKLTggLTU0IC0yMiAtOTAgLTI5IC0zNyAtOCAtOTUgLTI4IC0xMzAgLTQ1IC0xNDYgLTcwIC0xOTUgLTkxIC0yMjggLTk3IC0xOQotNCAtNTQgLTE3IC03NyAtMzAgLTIzIC0xMyAtNTcgLTI2IC03NSAtMzAgLTE4IC00IC01MSAtMTcgLTczIC0zMCAtMjIgLTEyCi02NSAtMzAgLTk1IC00MCAtMzAgLTEwIC03MyAtMjggLTk2IC00MSAtMjIgLTEzIC00NyAtMjQgLTU1IC0yNCAtMTMgMCAtMTUzCi02NCAtMjA5IC05NiAtMTQgLTcgLTQxIC0yMSAtNjAgLTI5IC0xOSAtOCAtNDYgLTIyIC02MCAtMzAgLTE0IC04IC01NCAtMjkKLTkwIC00OCAtNzAgLTM2IC0xMTUgLTYyIC0yMjUgLTEyNiAtMzggLTIyIC05MyAtNTIgLTEyMSAtNjUgLTU5IC0yOCAtMTYwCi05MSAtMTY5IC0xMDUgLTcgLTEyIC0xNDAgLTEwMSAtMTUwIC0xMDEgLTQgMCAtMjUgLTE2IC00NiAtMzUgLTIyIC0xOSAtNDUKLTM1IC01MiAtMzUgLTEyIDAgLTEwOCAtNjggLTIxMiAtMTUwIC0yMiAtMTcgLTYwIC00NCAtODUgLTYwIC0yNSAtMTYgLTcwCi00OCAtMTAxIC03MiAtNTYgLTQzIC0xNTkgLTEyMCAtMjI5IC0xNzAgLTIxIC0xNiAtOTMgLTgxIC0xNjEgLTE0NiAtNjggLTY2Ci0yNDggLTIzNiAtMzk5IC0zODAgLTE1MSAtMTQ0IC0yOTUgLTI4NyAtMzIwIC0zMTggLTI1IC0zMSAtNTIgLTY0IC02MCAtNzMKLTggLTkgLTI1IC0zMCAtMzcgLTQ2IC0xMSAtMTcgLTM4IC00OCAtNTggLTcwIC0yMCAtMjIgLTU0IC02MiAtNzUgLTkwIC0yMQotMjcgLTcwIC04OCAtMTA5IC0xMzUgLTc0IC04OSAtMTkxIC0yNDcgLTIyNyAtMzA2IC0xMSAtMTggLTMwIC00NCAtNDEgLTU2Ci0xMSAtMTMgLTI2IC0zNCAtMzMgLTQ4IC0xMyAtMjUgLTM5IC02MCAtOTggLTEyOSAtMTcgLTIxIC0zMiAtNDEgLTMyIC00NSAwCi00IC0xNiAtMjkgLTM1IC01NyAtMTkgLTI4IC0zNSAtNTcgLTM1IC02NCAwIC02IC05IC0yMCAtMjAgLTMwIC0xMSAtMTAgLTM0Ci00MiAtNTIgLTcyIC01NiAtOTMgLTk3IC0xNjYgLTExNiAtMjAzIC05IC0xOSAtMjYgLTQ5IC0zOCAtNjUgLTExIC0xNyAtNDAKLTcwIC02MyAtMTIwIC0yNCAtNDkgLTUxIC0xMDYgLTYxIC0xMjUgLTEwMCAtMTkyIC0yNDAgLTQ4NiAtMjQwIC01MDMgMCAtNwotMTYgLTQzIC0zNSAtODEgLTE5IC0zOSAtMzUgLTc3IC0zNSAtODUgMCAtOCAtMTcgLTUxIC0zOSAtOTUgLTIxIC00NSAtNTAKLTEwOCAtNjQgLTE0MSAtMjQgLTU3IC0zMyAtODAgLTc5IC0yMjAgLTExIC0zMyAtMjkgLTg1IC00MCAtMTE1IC0xMSAtMzAgLTMxCi05NCAtNDMgLTE0MSAtMTIgLTQ4IC0zMiAtMTE1IC00MyAtMTUwIC0xMSAtMzUgLTIzIC04NiAtMjcgLTExMiAtNCAtMjcgLTE1Ci02OSAtMjYgLTk0IC0xMSAtMjUgLTI2IC04NCAtMzQgLTEzMiAtOCAtNDcgLTI2IC0xMjQgLTM5IC0xNzEgLTE0IC00NyAtMzAKLTEzMCAtMzYgLTE4NSAtNiAtNTUgLTIwIC0xMzQgLTMxIC0xNzUgLTExIC00MSAtMjcgLTE0MiAtMzUgLTIyNSAtOCAtODIgLTI0Ci0xOTkgLTM1IC0yNjAgLTIwIC0xMDQgLTIyIC0xNDkgLTI2IC04MDAgLTUgLTcwMyAyIC05NDQgMzMgLTEwODAgNyAtMzMgMjAKLTEyOCAyOCAtMjEwIDE2IC0xNTUgMjggLTIzMCA1MSAtMzAwIDcgLTIyIDE1IC03NiAxOSAtMTIwIDYgLTcxIDI1IC0xNjIgODEKLTM4NSA5IC0zNiAyNyAtMTEwIDQwIC0xNjUgMTQgLTU0IDMzIC0xMjIgNDQgLTE1MCAxMSAtMjcgMjcgLTg1IDM1IC0xMjggOQotNDIgMjMgLTkyIDMyIC0xMTAgMTAgLTE3IDI1IC02NCAzNSAtMTA0IDEwIC00MCAyNyAtODkgMzcgLTExMCAxMSAtMjEgMjMKLTU0IDI3IC03MyA4IC00MSA4MCAtMjAzIDEwNyAtMjQyIDEwIC0xNSAyNSAtNDkgMzIgLTc1IDggLTI3IDI2IC03NyA0MCAtMTEzCjI3IC02NiA0MCAtOTQgMTIwIC0yNjAgMjUgLTUyIDQ2IC0xMDAgNDYgLTEwNiAwIC02IDkgLTIyIDE5IC0zNiAxMSAtMTQgMjgKLTQ1IDM3IC02OSA5IC0yNCAyMyAtNTEgMzAgLTU5IDcgLTggMzUgLTY0IDYyIC0xMjUgMjggLTYwIDY2IC0xMzcgODUgLTE3MAoyMCAtMzMgNDkgLTgyIDY0IC0xMDggMzMgLTU2IDczIC0xMjIgMTE4IC0xOTIgMTcgLTI3IDUwIC03OSA3MyAtMTE1IDU3IC05MQo5MiAtMTM4IDEyOCAtMTc0IDE3IC0xNyAzNSAtNDIgMzkgLTU2IDQgLTE0IDE5IC00MSAzNCAtNjAgMTUgLTE5IDM1IC00OCA0NgotNjUgMzAgLTQ4IDIzNiAtMzEyIDI4MCAtMzYwIDE3IC0xOCA0OCAtNTYgNzAgLTg1IDIyIC0yOSA2MiAtNzggODkgLTEwOSAyNgotMzEgNTUgLTY3IDY0IC04MSA0MCAtNjIgMzQ5IC0zNjggNjYyIC02NTUgNDcgLTQzIDExMiAtMTA2IDE0NSAtMTM5IDY1IC02NwoxOTEgLTE2OSAyODIgLTIyOSAzMiAtMjEgODUgLTYwIDExOCAtODcgMzMgLTI4IDc3IC01OSA5NyAtNzAgMjAgLTExIDQxIC0yNgo0NSAtMzMgOCAtMTQgMzU5IC0yNTIgNDM4IC0yOTcgMjQgLTE0IDU1IC0zNSA2NyAtNDYgMzAgLTI3IDEyMiAtODQgMTM1IC04NAo2IDAgMjggLTEyIDQ5IC0yNyAyMSAtMTUgNTkgLTM3IDg0IC01MSAyNSAtMTMgNzIgLTM5IDEwNSAtNTcgMzMgLTE5IDkyIC01MAoxMzAgLTcwIDM5IC0xOSA3NyAtMzkgODUgLTQ0IDI4IC0xOCAxODYgLTkxIDE5NiAtOTEgNiAwIDI3IC0xMSA0NiAtMjQgMTkKLTEzIDU5IC0zMSA4OSAtNDEgMzAgLTEwIDcwIC0yNiA4OSAtMzYgNDQgLTIyIDE1MSAtNjYgMjEwIC04NiAyNSAtOCA3NCAtMjcKMTEwIC00MyAzNiAtMTUgODMgLTM0IDEwNCAtNDAgMjIgLTcgNTMgLTIxIDcwIC0zMCAxNyAtMTAgNTggLTIzIDkxIC0zMCAzMwotNiA3NiAtMjIgOTUgLTM1IDE5IC0xMiA1NyAtMjggODQgLTM0IDI3IC03IDY1IC0yMCA4NiAtMzEgMjAgLTEwIDczIC0yNiAxMTgKLTM0IDQ1IC05IDk2IC0yMyAxMTIgLTMxIDE2IC04IDczIC0yNCAxMjcgLTM1IDUzIC0xMSAxMjIgLTI5IDE1MiAtMzkgMzEgLTExCjk5IC0yNiAxNTEgLTM1IDUyIC04IDEyMCAtMjIgMTUwIC0zMSAzMCAtOCA5NiAtMjAgMTQ2IC0yNSA0OSAtNSAxMzcgLTIwIDE5NQotMzQgNTcgLTEzIDE2OSAtMjkgMjQ5IC0zNiA4MCAtNiAyMTUgLTIxIDMwMCAtMzMgMTQ2IC0yMCAxOTIgLTIyIDc2MCAtMjIKNTc3IDAgNjEyIDEgNzUzIDIyIDgxIDEzIDIxNCAyOCAyOTUgMzMgODEgNiAxODMgMjAgMjI3IDMxIDQ0IDExIDEzNiAyNyAyMDMKMzUgNjggOCAxNDkgMjMgMTgwIDMzIDMyIDExIDEwNSAyNyAxNjQgMzUgNTkgOSAxMjggMjUgMTU0IDM2IDI2IDExIDc3IDI1CjExMyAzMCAzNyA1IDk2IDIwIDEzMiAzNCAzNiAxMyA5NCAzMCAxMjkgMzYgMzUgNiA4MCAyMCAxMDEgMzAgMjAgMTEgNTggMjQKODUgMzEgMjcgNyA2NyAyMiA4OSAzNSAyMiAxMiA2MyAyOCA5MCAzNSAyOCA3IDcwIDIyIDk1IDM0IDI1IDEyIDY4IDI3IDk1IDM0CjI4IDcgNjQgMjAgODEgMzAgMTcgMTAgNDggMjQgNzAgMzEgMjEgNyA2NiAyNSA5OSA0MCAzMyAxNSA3MyAzMCA4OCAzNCAxNiA0CjQ1IDE4IDY1IDMxIDIwIDEzIDUxIDI3IDY3IDMwIDI5IDcgMTA5IDQyIDI0MCAxMDYgMzMgMTYgNjUgMjkgNzEgMjkgNiAwIDMwCjE0IDUyIDMwIDIzIDE3IDQ1IDMwIDQ5IDMwIDUgMCAxOSA2IDMzIDE0IDE0IDggNTQgMzAgOTAgNTAgMzYgMjAgOTAgNDggMTIwCjYyIDMwIDE0IDY0IDM0IDc1IDQ0IDExIDExIDM4IDI2IDYwIDM2IDIyIDkgNTEgMjUgNjUgMzUgMTQgMTEgNTIgMzcgODUgNTgKMzMgMjAgMTIwIDc4IDE5NCAxMjcgNzMgNDkgMTUwIDEwMCAxNzEgMTE0IDE0OCA5OSAyNDkgMTc0IDM5MyAyOTEgMTggMTQgNDMKMzIgNTYgMzkgNDYgMjQgMTQyIDEwMiAyMTMgMTc0IDQwIDQwIDEyMCAxMTUgMTc4IDE2NiA1OCA1MiAxODQgMTczIDI4MCAyNjkKOTYgOTcgMTkwIDE4NyAyMDggMTk5IDE4IDEzIDY3IDY2IDExMCAxMTcgMTY4IDIwMyAzMzggNDEwIDM1NyA0MzYgMTEgMTUgNTQKNzEgOTYgMTI2IDc3IDEwMCAxMjkgMTc2IDIwOCAzMDIgMjUgMzkgNDggNzEgNTIgNzEgOSAwIDc1IDg5IDEwOSAxNDYgMzQgNTcKODMgMTM2IDEzMSAyMDkgMjIgMzMgNTIgODcgNjggMTIwIDE1IDMzIDM1IDY2IDQ0IDc0IDEwIDcgMTcgMTkgMTcgMjUgMCA3IDEzCjMzIDI5IDU5IDE3IDI1IDM1IDY0IDQxIDg1IDUgMjIgMTkgNTEgMzAgNjUgMTEgMTQgMjcgNDUgMzUgNjggOSAyNCAyMiA1MSAzMQo2MCA4IDkgMjQgNDEgMzUgNzAgMTEgMjkgMjggNjQgMzggNzggMTAgMTQgMjQgNDQgMzEgNjYgNyAyMiAyMiA1MyAzMiA2OCAxMQoxNSAyNiA1MCAzMyA3NyA3IDI3IDIyIDYyIDM0IDc4IDExIDE2IDI1IDUxIDMxIDc3IDYgMjYgMzcgMTAyIDY5IDE2OSAzMyA2Ngo2NCAxNDEgNzEgMTY2IDYgMjUgMjAgNTkgMzEgNzYgMTAgMTcgMjYgNjEgMzQgOTkgOSAzNyAyNSA4NSAzNSAxMDUgMTEgMjEgMjQKNjUgMjkgOTggNSAzNCAxOSA4MiAzMCAxMDggMTIgMjUgMjggODUgMzcgMTMyIDkgNDggMjUgMTA0IDM1IDEyNSAxMSAyMCAyNAo3NCAzMCAxMjAgNyA0NSAyMCAxMDQgMzEgMTMyIDExIDI3IDI4IDExNCAzOSAxOTMgMTAgNzggMjUgMTU1IDMzIDE3MCA3IDE1CjIxIDk3IDMwIDE4MiA5IDg1IDIzIDE4MiAzMSAyMTUgMjcgMTE2IDY1IDcxMyA2NSAxMDMzIDAgMjg1IC0zNSA5NzEgLTU0CjEwNjcgLTIzIDExMCAtMzUgMTkxIC00NiAzMTAgLTYgNjEgLTIyIDE1MSAtMzUgMjAwIC0xMyA1MCAtMjcgMTIyIC0zMSAxNjAKLTMgMzkgLTE3IDEwNCAtMzAgMTQ1IC0xMyA0MSAtMjggMTA2IC0zNCAxNDMgLTYgMzcgLTIxIDk2IC0zNCAxMzAgLTEzIDM1Ci0yOSA5NiAtMzYgMTM3IC03IDQxIC0yMyAxMDAgLTM1IDEzMCAtMTMgMzAgLTI2IDc1IC0zMCAxMDAgLTQgMjUgLTIwIDcyIC0zNgoxMDYgLTE2IDMzIC0zMiA4MyAtMzUgMTEwIC00IDI3IC0xNiA2NyAtMjkgODkgLTEyIDIyIC0yNSA1NCAtMjkgNzAgLTQgMTcKLTMxIDgwIC02MSAxNDAgLTI5IDYxIC02MSAxMzcgLTcwIDE3MCAtMTAgMzMgLTI1IDcxIC0zNSA4NSAtOSAxNCAtMjMgNDMgLTI5CjY1IC0xMSAzNSAtNjIgMTUwIC05NCAyMTAgLTI2IDQ5IC0zOCA3MyAtNTcgMTE1IC0xMSAyNSAtMjYgNTYgLTM0IDcwIC04IDE0Ci0yMyA0NSAtMzUgNzAgLTEyIDI1IC0yOCA1NiAtMzUgNzAgLTcgMTQgLTM1IDY4IC02MiAxMjAgLTI2IDUyIC02NSAxMjIgLTg2CjE1NSAtMjEgMzMgLTQ5IDgzIC02MyAxMTAgLTE0IDI4IC0zNSA2NCAtNDggODEgLTIyIDMxIC0zOSA1OCAtODcgMTM5IC0zNiA2MQotOTIgMTM1IC0xMDIgMTM1IC01IDAgLTE4IDIxIC0yOSA0OCAtMTEgMjYgLTI5IDU2IC0zOSA2NyAtMjAgMjEgLTQ4IDU5IC0xMDUKMTQwIC0xOSAyOCAtNDggNjggLTY0IDkwIC0xNyAyMiAtNDMgNTggLTU3IDgwIC0xNSAyMiAtMzkgNTQgLTUzIDcxIC01MiA2MgotNjYgODAgLTEwNSAxMjkgLTIyIDI4IC03MiA4NiAtMTExIDEzMCAtMzkgNDQgLTgzIDk4IC05NyAxMjEgLTE1IDIzIC02MiA3NwotMTA1IDEyMiAtMTA3IDExMCAtNDg1IDQ3NCAtNTYyIDU0MiAtMzQgMzAgLTcyIDY2IC04NCA4MCAtMTIgMTMgLTQwIDQwIC02Mgo2MCAtMjIgMTkgLTUxIDQ3IC02NiA2MSAtMTUgMTQgLTQwIDM0IC01NSA0NCAtMTYgMTAgLTM1IDI3IC00MiAzNyAtNyAxMCAtMjYKMjUgLTQyIDMzIC0yNyAxNCAtMTA5IDcxIC0xOTQgMTM1IC0yNDIgMTgyIC0yMjIgMTY3IC0zOTMgMjgzIC03OCA1MyAtMTU3CjEwNCAtMTc1IDExMyAtMTggOSAtMzggMjMgLTQzIDMxIC0xMyAxNyAtNzEgNTMgLTE0MSA4OCAtMjggMTQgLTU5IDM0IC02OSA0NQotOSAxMCAtMzQgMjQgLTU0IDMxIC0yMCA2IC01MiAyMyAtNzEgMzkgLTE5IDE1IC01MiAzMiAtNzIgMzkgLTIwIDcgLTQyIDE4Ci00OCAyNiAtNiA4IC0zMyAyMiAtNTggMzIgLTI2IDkgLTYyIDI4IC04MSA0MCAtMTkgMTMgLTM5IDIzIC00NiAyMyAtNyAwIC0yOQoxMyAtNDkgMjkgLTIwIDE2IC01MSAzMyAtNjkgMzYgLTE4IDQgLTU0IDE5IC04MiAzNCAtMjcgMTUgLTcwIDMzIC05NSA0MCAtMjUKNyAtNjMgMjQgLTg1IDM2IC0yMiAxMyAtNTYgMjYgLTc1IDMwIC0xOSA0IC01MCAxOCAtNzAgMzEgLTE5IDEyIC01NSAyOCAtODAKMzQgLTI1IDYgLTYxIDIyIC04MCAzNSAtMTkgMTIgLTUzIDI2IC03NSAzMCAtNDEgNyAtMTI1IDQzIC0yMjcgOTYgLTMyIDE2Ci04NCAzNCAtMTE1IDQwIC0zMiA2IC04MyAyMSAtMTEzIDM0IC0zMCAxMiAtODIgMjggLTExNSAzNSAtMzMgNyAtNzggMjAgLTEwMAozMCAtMjIgMTAgLTgwIDI2IC0xMzAgMzUgLTQ5IDkgLTExMCAyNSAtMTM1IDM1IC0yNSAxMSAtODkgMjYgLTE0MyAzNSAtNTUgOAotMTA4IDIwIC0xMTggMjYgLTExIDUgLTgwIDE5IC0xNTQgMjkgLTc0IDExIC0xNjcgMjkgLTIwNiA0MCAtMzkgMTAgLTEwNiAyMgotMTQ4IDI1IC05OSA4IC0xOTYgMjAgLTM1NiA0NyAtMTI0IDIxIC0xNjQgMjIgLTgzNSAyMyAtMzg4IDEgLTcyMyAxIC03NDUgLTF6Cm04ODUgLTMxNCBjNjkgLTYgMjM1IC0xNCAzNzAgLTIwIDEzNSAtNSAyODEgLTE2IDMyNSAtMjQgOTUgLTE3IDIyMiAtMzMgMzI1Ci00MiA0MSAtMyAxMDcgLTE2IDE0NSAtMjkgMzkgLTEzIDExMiAtMzEgMTYzIC00MCA1MSAtOSAxMDMgLTIwIDExNSAtMjUgMTIKLTUgNzIgLTE5IDEzMiAtMzAgNjEgLTEyIDEzNyAtMzAgMTcwIC00MCAzMyAtMTEgOTMgLTI2IDEzMyAtMzUgNDAgLTggOTQgLTI0CjEyMCAtMzUgMjYgLTExIDc1IC0yNCAxMDggLTI5IDM0IC01IDg0IC0yMSAxMTEgLTM1IDI3IC0xNCA3NCAtMzEgMTA2IC0zNiAzMQotNiA4MiAtMjIgMTEyIC0zNSAzMSAtMTQgNjQgLTI1IDc0IC0yNSAxMSAwIDQ0IC0xMyA3NCAtMjkgMzAgLTE2IDc5IC0zNCAxMDgKLTQwIDMwIC03IDcyIC0yMiA5NCAtMzUgMjIgLTEzIDUxIC0yNyA2NSAtMzEgMTQgLTMgNTIgLTE5IDg1IC0zNSAzMyAtMTYgMTIxCi01NyAxOTUgLTkzIDc0IC0zNSAxNDYgLTY4IDE2MCAtNzIgMzIgLTkgMTM4IC02OCAyMDMgLTExMiAyNyAtMTggNTMgLTMzIDU4Ci0zMyA1IDAgMjggLTEzIDUxIC0zMCAyMiAtMTYgNDYgLTMwIDUzIC0zMCA2IDAgNTEgLTI1IDEwMSAtNTYgNDkgLTMxIDEwMwotNjMgMTE5IC03MSAxNyAtOCA2NCAtMzYgMTA1IC02MyA0MSAtMjcgOTQgLTU4IDExNiAtNjkgMjMgLTExIDQ1IC0yNCA0OSAtMzAKMyAtNiAyNyAtMjMgNTMgLTM3IDI2IC0xNCA3NCAtNDUgMTA3IC02OSAzMyAtMjQgOTIgLTY1IDEzMCAtOTEgNjIgLTQyIDE2MQotMTIzIDI1MCAtMjA1IDYxIC01NyAxOTYgLTE2OSAyMDMgLTE2OSAzNyAwIDY0MiAtNTc2IDY0MiAtNjExIDAgLTYgMzEgLTQ0CjY4IC04MyAxOTAgLTE5NyAyODMgLTMwMCAzNDIgLTM3NSAzNiAtNDYgOTMgLTExNiAxMjYgLTE1NiAzNCAtMzkgNjQgLTgxIDY4Ci05MiA0IC0xMiAyMCAtMzggMzYgLTU4IDE3IC0yMSAzMCAtNDIgMzAgLTQ4IDAgLTEwIDQ0IC03MyA5MSAtMTMwIDE1IC0xOCAzNgotNTAgNDggLTcyIDIwIC0zNyAzNCAtNTggOTEgLTE0MCAxMiAtMTYgMzUgLTUyIDUxIC04MCAxNiAtMjcgNDMgLTcwIDU5IC05NQoxNiAtMjUgNDEgLTY3IDU2IC05NSAxNCAtMjcgMzQgLTU5IDQzIC03MCAyOCAtMzMgOTEgLTE0MiA5MSAtMTU4IDAgLTggMTAKLTI5IDIzIC00OCAzNyAtNTUgMTAzIC0xODEgMTE2IC0yMjAgNiAtMjAgMjMgLTQ3IDM2IC01OSAxOCAtMTcgMjUgLTM0IDI1Ci02MCAwIC0yMyA5IC00OCAyNSAtNzAgMTMgLTE4IDMwIC00OSAzNiAtNjkgNyAtMjAgMjQgLTYxIDM5IC05MSAxNSAtMzAgMzIKLTc3IDM5IC0xMDQgNyAtMjcgMjAgLTYxIDMwIC03NSAxMSAtMTQgMjYgLTQ5IDM0IC03NyA4IC0yOCAyMiAtNjUgMzEgLTgyIDgKLTE2IDI1IC02NSAzNyAtMTA5IDEyIC00MyAyOSAtOTEgMzkgLTEwOCA5IC0xNiAyMCAtNTAgMjMgLTc1IDMgLTI1IDE3IC02NgozMSAtOTAgMTMgLTI1IDI5IC03NyAzNSAtMTE1IDYgLTM5IDIxIC05NyAzNCAtMTMwIDE0IC0zMyAzMCAtOTAgMzYgLTEyNiA2Ci0zNyAyMCAtODcgMzAgLTExMCAxMCAtMjQgMjIgLTY2IDI2IC05MiAzIC0yNyAxOSAtNzggMzUgLTExNSAyMCAtNDggMzEgLTk4CjM5IC0xNzggNiAtNjEgMTggLTEzOCAyNyAtMTcwIDIzIC04NiA0NCAtMjIxIDQ0IC0yODQgMCAtMzAgMTAgLTEwNCAyMSAtMTY1CjMwIC0xNjIgNDggLTUwMiA0OCAtOTE3IDEgLTUwNyAtMTIgLTc2NiAtNTAgLTk2MyAtNSAtMjcgLTE0IC0xMDggLTE5IC0xODAKLTYgLTcxIC0xOCAtMTU1IC0yNyAtMTg1IC0yNCAtODUgLTMyIC0xMjcgLTQyIC0yMzYgLTYgLTU5IC0xOSAtMTIzIC0zMiAtMTU1Ci0yMSAtNTMgLTc3IC0yNTMgLTEwNSAtMzc0IC03IC0zMyAtMjIgLTgzIC0zMyAtMTEyIC0xMSAtMjggLTI1IC04MiAtMzEgLTEyMAotNiAtMzcgLTIwIC04NSAtMzAgLTEwNSAtMTEgLTIwIC0yNiAtNjUgLTM1IC0xMDAgLTkgLTM1IC0yMyAtNzMgLTMwIC04NSAtOAotMTIgLTI0IC01NSAtMzUgLTk2IC0xMSAtNDIgLTI4IC05MCAtMzkgLTEwOSAtMTEgLTE4IC0yNSAtNTUgLTMyIC04MyAtNiAtMjcKLTIwIC02MyAtMjkgLTgwIC0xMCAtMTYgLTIzIC00OCAtMzAgLTcwIC03IC0yMiAtMjMgLTU4IC0zNiAtODEgLTEyIC0yMiAtMjgKLTYzIC0zNSAtOTAgLTYgLTI3IC0yMCAtNjMgLTMwIC04MCAtMTEgLTE3IC0yNiAtNTAgLTM0IC03MyAtOCAtMjMgLTI0IC01NQotMzUgLTcxIC0xMSAtMTYgLTI2IC00NiAtMzQgLTY3IC03IC0yMSAtMzUgLTc2IC02MSAtMTIzIC0yNiAtNDcgLTU5IC0xMDcKLTcyIC0xMzUgLTE0IC0yNyAtNDkgLTg1IC03NyAtMTMwIC0yOSAtNDQgLTcyIC0xMTQgLTk2IC0xNTUgLTI0IC00MSAtNTMgLTkxCi02NSAtMTEwIC0xMiAtMTkgLTMxIC00OSAtNDEgLTY2IC0xMCAtMTcgLTQwIC02MyAtNjYgLTEwMyAtMjcgLTM5IC00OCAtNzUKLTQ4IC03OSAwIC00IC0xNyAtMjggLTM3IC01NCAtMjEgLTI1IC02NiAtODggLTEwMSAtMTQwIC05NSAtMTQyIC0xMjIgLTE3OQotMTg3IC0yNjMgLTMzIC00MiAtNjcgLTg4IC03NiAtMTAyIC05IC0xMyAtNzAgLTgxIC0xMzUgLTE1MCAtMjE1IC0yMjkgLTI1MAotMjY3IC0zMTUgLTM0OCAtMTA2IC0xMzIgLTM5MSAtNDA3IC01MjMgLTUwNSAtMjYgLTE5IC04MCAtNjIgLTExOSAtOTUgLTQwCi0zMyAtODEgLTY3IC05MyAtNzUgLTYwIC00MiAtMTE1IC04NyAtMTc0IC0xNDEgLTM2IC0zMyAtMTAzIC04NyAtMTUwIC0xMjEKLTQ3IC0zNSAtOTggLTcyIC0xMTUgLTg1IC04OCAtNjUgLTIwNSAtMTM5IC0yNzUgLTE3NiAtMjUgLTEyIC01OSAtMzIgLTc1Ci00NCAtMTcgLTExIC02NCAtMzkgLTEwNSAtNjMgLTQxIC0yNCAtODYgLTUxIC0xMDAgLTYwIC0xNSAtMTAgLTQ5IC0yOSAtNzcKLTQ0IC0yOCAtMTQgLTU0IC0zMCAtNTcgLTM1IC00IC01IC01NSAtMzMgLTExNCAtNjIgLTEwMiAtNDkgLTIxMCAtMTA5IC0yNDIKLTEzNSAtOCAtNyAtMzcgLTE5IC02MyAtMjggLTI3IC05IC02NSAtMjcgLTg1IC00MSAtMjAgLTE0IC00NCAtMjUgLTUyIC0yNQotOSAwIC01MiAtMTggLTk1IC00MCAtNDMgLTIyIC04NSAtNDAgLTkzIC00MCAtNyAwIC0zMiAtMTEgLTU1IC0yNCAtMjMgLTEzCi02MiAtMzAgLTg3IC0zNiAtMjUgLTcgLTU5IC0yMCAtNzYgLTMxIC0xNiAtMTAgLTU2IC0yNSAtODggLTMzIC0zMiAtOSAtNzIKLTI0IC04OSAtMzQgLTE4IC0xMSAtNjUgLTI3IC0xMDQgLTM1IC00MCAtOSAtOTAgLTI1IC0xMTEgLTM2IC0yMSAtMTEgLTY3Ci0yNSAtMTAyIC0zMSAtMzUgLTYgLTgwIC0yMCAtOTkgLTMwIC0yMCAtMTAgLTcxIC0yNSAtMTE1IC0zNCAtNDMgLTkgLTk4IC0yNQotMTIyIC0zNSAtMjQgLTExIC03OCAtMjUgLTEyMSAtMzEgLTQzIC03IC0xMDUgLTIwIC0xMzggLTMwIC0zMyAtMTAgLTExOCAtMjgKLTE5MCAtNDAgLTcxIC0xMSAtMTY0IC0yOSAtMjA1IC00MCAtNDEgLTEwIC0xMjcgLTI0IC0xOTAgLTMwIC02MyAtNyAtMTU1Ci0yMiAtMjA1IC0zNSAtNTMgLTEzIC0xNDAgLTI2IC0yMTAgLTMwIC02NiAtMyAtMTU4IC0xMSAtMjA1IC0xNiAtMjk4IC0zNAotNjU4IC00MyAtOTIwIC0yMiAtODAgNyAtMjM1IDE5IC0zNDUgMjcgLTIwMCAxNiAtMzA1IDMwIC0zMzYgNDcgLTEwIDUgLTkwCjE4IC0xNzggMjkgLTg5IDExIC0xODUgMjYgLTIxNCAzNCAtMjggOCAtODggMjAgLTEzMiAyNiAtMTY1IDIzIC0yMDkgMzEgLTIzNwo0NiAtMTYgOSAtNzMgMjIgLTEyNiAzMSAtNTMgOCAtMTIyIDI1IC0xNTIgMzggLTMwIDEyIC04MCAyNiAtMTEwIDMwIC0zMCA0Ci04MSAxOCAtMTEyIDMxIC0zMiAxMyAtODEgMjkgLTExMCAzNSAtMjkgNiAtNzAgMjAgLTkwIDMwIC0yMSAxMSAtNjkgMjYgLTEwOAozNCAtMzkgOCAtODkgMjQgLTExMiAzNiAtMjIgMTEgLTY0IDI3IC05MyAzNCAtMjkgOCAtNjcgMjMgLTg2IDM0IC0xOSAxMCAtNTgKMjYgLTg3IDM1IC0zMCA4IC02OCAyNCAtODUgMzUgLTE4IDEwIC00NiAyMiAtNjQgMjYgLTE4IDMgLTQzIDE1IC01NyAyNiAtMTQKMTEgLTUxIDI5IC04MyA0MCAtMzEgMTAgLTY4IDI2IC04MSAzNSAtMTMgOSAtNDggMjQgLTc3IDM0IC0zMCAxMCAtOTEgNDMKLTEzNyA3MiAtNDYgMzAgLTEyNyA3NiAtMTgxIDEwMiAtNTQgMjcgLTEwMCA1MyAtMTA0IDU5IC0zIDUgLTI5IDIwIC01NyAzNAotNTEgMjQgLTEyNCA2NiAtMjMyIDEzMyAtMzEgMTkgLTc1IDQ2IC05OCA2MCAtMTU2IDkzIC0yMzcgMTQ1IC0yNzIgMTc0IC0xOAoxNCAtMzYgMjYgLTQxIDI2IC01IDAgLTI3IDE1IC00OSAzMyAtMjEgMTkgLTYxIDQ5IC04OSA2OCAtMjcgMTkgLTc0IDU4IC0xMDQKODYgLTI5IDI5IC04MiA3NCAtMTE4IDEwMCAtMzUgMjYgLTEwMCA3NyAtMTQzIDExMyAtNDMgMzYgLTEwMyA4MyAtMTM0IDEwNQotMzIgMjIgLTc3IDYwIC0xMDAgODUgLTIzIDI1IC02OSA2OCAtMTAxIDk1IC05NCA4MSAtMjUzIDI0NCAtMzIyIDMzMCAtMzUgNDQKLTExNyAxMzQgLTE4MiAyMDAgLTE3NSAxNzcgLTQwMSA0NDggLTQ1MCA1NDAgLTIyIDQyIC02MyAxMDAgLTE0MyAyMDMgLTI2IDM0Ci01NyA4MCAtNjkgMTA0IC0xMiAyNCAtMzEgNTUgLTQzIDY5IC0xMSAxNSAtMzAgNDEgLTQxIDU5IC0yNSA0MiAtNzQgMTE5IC05OQoxNTYgLTc5IDExOCAtMTI5IDIwMCAtMTUxIDI0NSAtMTQgMzAgLTM1IDcwIC00NSA4OSAtMTEgMTkgLTI3IDUxIC0zNSA3MCAtOAoxOSAtMzIgNjIgLTUxIDk1IC01MiA4NiAtMTM0IDI0NSAtMTM0IDI2MCAwIDcgLTEzIDM2IC0yOSA2NiAtMTUgMzAgLTMyIDY5Ci0zNiA4OCAtNCAxOSAtMjAgNTMgLTM1IDc3IC0xNSAyNCAtMzAgNjMgLTM0IDg2IC00IDI0IC0xNCA1NCAtMjMgNjggLTkgMTQKLTMwIDYxIC00NiAxMDUgLTE2IDQ0IC00NyAxMzAgLTY5IDE5MCAtMjIgNjEgLTQ4IDEzOSAtNTcgMTc1IC0xMCAzNiAtMjUgODAKLTM1IDk3IC05IDE4IC0yNCA2NyAtMzIgMTEwIC05IDQyIC0yNSA5NyAtMzYgMTIyIC0xMCAyNSAtMjUgNzcgLTMzIDExNyAtNwozOSAtMjQgOTcgLTM4IDEzMCAtMTMgMzIgLTI3IDc3IC0zMSA5OSAtNCAyMiAtMTggNzQgLTMxIDExNSAtMTQgNDEgLTI5IDEyMgotMzUgMTgwIC01IDU4IC0xOCAxMzcgLTI5IDE3NSAtMTEgMzkgLTI5IDE1MyAtNDEgMjU1IC0xMSAxMDIgLTI1IDIwMSAtMzAKMjIwIC0xOCA1OSAtMzkgNTI3IC00MCA4OTAgLTEgMzc5IDE5IDgzMiAzOCA4NjcgNyAxMiAxMiA0OSAxMiA4MiAwIDMzIDQgNzAKOSA4MyA1IDEzIDE0IDgyIDIxIDE1MyA3IDc2IDIwIDE1MCAzMSAxNzggMTEgMjYgMTkgNjQgMTkgODUgMCA2MyAyOSAyMzEgNDUKMjYxIDggMTcgMTkgNjIgMjUgMTAxIDYgMzkgMjIgOTQgMzYgMTIxIDE0IDI4IDMyIDg1IDQwIDEyNyA4IDQzIDI2IDEwNSAzOQoxMzkgMTQgMzQgMjUgNzYgMjUgOTMgMCAxNyAxMyA2NCAyOSAxMDMgMTUgNDAgMzQgOTcgNDAgMTI3IDcgMzAgMjIgNzcgMzUKMTA1IDEzIDI3IDI3IDY2IDMxIDg1IDQgMTkgMTYgNTEgMjYgNzAgMTAgMTkgMzAgNjcgNDMgMTA1IDEzIDM5IDMzIDk0IDQ1CjEyMyAzOSA5NyA2MyAxNTcgODUgMjEyIDExIDMwIDI4IDY2IDM4IDgwIDkgMTQgMTkgMzYgMjMgNTAgOCAzMSA5NCAyMTAgMTExCjIzMCA3IDggMzYgNjIgNjUgMTIwIDI4IDU4IDU4IDExMiA2NSAxMjAgNyA4IDIxIDM4IDMxIDY1IDE5IDQ4IDQ1IDkyIDkyIDE1MQoxMiAxNiA0NiA2OCA3NCAxMTUgNjQgMTA2IDE1NiAyNDcgMjQyIDM2OSAxNCAxOSAzMyA0OCA0MiA2MyAzNiA1NiAxNDkgMjE1CjE3OCAyNDkgMTcgMTkgNDggNTkgNzAgODggNjEgODEgMjA4IDI1MCAyNTYgMjk2IDU1IDUxIDE0NyAxNTIgMjQ0IDI2OSA5NwoxMTUgNTQ1IDUzNSA1NzIgNTM1IDYgMCAxOCAxMCAyOSAyMSAxMCAxMiAzNyAzMyA1OSA0NyAyMiAxNCA1MCAzNCA2MSA0NiA3OAo3NiAyMTYgMTk1IDI2OSAyMzAgMjIgMTQgODEgNTYgMTMwIDkxIDUwIDM2IDEyMyA4NiAxNjQgMTEyIDQwIDI3IDk0IDYyIDEyMAo3OSAyNiAxNyA1NyAzNCA2OSAzOCAxMiA0IDM0IDE3IDUwIDMwIDM2IDI5IDE0MiA5MyAxNzYgMTA2IDE1IDUgNDcgMjMgNzAgNDAKMjQgMTYgNzggNDggMTIyIDcwIDQzIDIzIDkxIDUzIDEwNyA2NiAxNiAxMyAzMyAyNCAzOSAyNCA2IDAgMzIgMTMgNTcgMjkgMjUKMTYgNjIgMzQgODIgNDAgMjAgNiA1MSAyMyA2OSAzNiAxOSAxNCA0MSAyNSA1MCAyNSA5IDAgNDcgMTYgODYgMzUgMzggMTkgNzYKMzUgODUgMzUgOSAwIDMyIDExIDUyIDI1IDIwIDEzIDU2IDI5IDc5IDM1IDI0IDcgNjYgMjQgOTMgNDAgMjggMTUgNjggMzEgOTAKMzUgMjIgNCA1OCAxNyA4MCAzMCAyMiAxMiA2NSAyOCA5NSAzNSAzMCA3IDcwIDIxIDg4IDMxIDE4IDEwIDUyIDIyIDc1IDI1IDIzCjQgNzIgMTkgMTA5IDM1IDM2IDE2IDEwMSAzNiAxNDMgNDQgNDMgOCA4MiAxOSA4OSAyNCA2IDUgNTcgMjEgMTE0IDM1IDU2IDE0CjExOCAzMiAxMzcgNDAgMTggOCA2OSAxOSAxMTIgMjYgNDMgNiAxMDcgMjAgMTQzIDMwIDM2IDExIDEwOSAyNiAxNjIgMzUgNTMgOAoxMTcgMjQgMTQyIDM2IDMzIDE0IDEwMSAyNiAyMzIgNDAgMTAyIDExIDIxMyAyNiAyNDcgMzQgMzQgOCAxNjEgMTkgMjgyIDI1CjEyMSA2IDI4OCAxNSAzNzAgMTkgMjI1IDEyIDM0NyAxMiA0ODUgMXoiLz48cGF0aCBkPSJNMTAzOTIgMTczNDggYy0zNyAtMTAgLTg0IC02OCAtMTAzIC0xMjYgLTYgLTIwIC0xNSAtNDEgLTE5IC00NyAtNQotNSAtMzYgLTY0IC03MCAtMTMwIC0zNCAtNjYgLTY4IC0xMjcgLTc1IC0xMzUgLTcgLTggLTIwIC0zMyAtMjkgLTU1IC0xMCAtMjIKLTI1IC00OSAtMzUgLTYwIC0xMCAtMTEgLTI0IC0zNiAtMzAgLTU2IC02IC0yMCAtMjMgLTUxIC0zNiAtNjkgLTEzIC0xOCAtMjkKLTQ4IC0zNSAtNjYgLTEwIC0yOCAtODUgLTE1MiAtMTM0IC0yMjEgLTkgLTEyIC0zOSAtMjggLTcwIC0zNyAtODQgLTI1IC0xMDkKLTc4IC02MyAtMTMyIDIyIC0yNSAzMiAtMjggMTU4IC0zOSAxMzYgLTEzIDIyNiAtMTggMjY3IC0xNiAzMyAyIDYyIDM2IDYyIDc0CjAgMzkgLTIxIDYxIC03MSA3OCAtNjkgMjQgLTg5IDY4IC00OCAxMDUgMTIgMTAgMzAgMzYgNDEgNTcgMzEgNjEgNjYgNzEgMjI4CjYyIDE4OSAtMTAgMjEzIC0yNiAyMjYgLTE1NCA4IC04NiAtMSAtMTAxIC02MSAtMTAxIC00NiAwIC02OCAtMTcgLTc5IC02MiAtNAotMjAgMCAtMzMgMTYgLTUyIDIyIC0yNCAzMiAtMjYgMTY5IC0zNSA4MCAtNiAxNjggLTE1IDE5NiAtMjAgMTM2IC0yNiAzMzcKLTIxIDM2NiA4IDcgNyA0IDI0IC03IDUwIC0xOSA0MSAtNzUgODggLTEzNyAxMTQgLTMwIDEyIC00MiAyOCAtNzcgOTggLTIzIDQ2Ci00NiAxMDYgLTUyIDEzMiAtNiAyNyAtMTkgNjUgLTI5IDg1IC0xMCAyMSAtMjYgNzIgLTM1IDExNSAtOCA0MiAtMjIgOTEgLTMxCjEwNyAtOCAxNiAtMjQgNjUgLTM0IDEwOCAtMTAgNDQgLTI4IDEwMCAtMzkgMTI1IC0xMiAyNiAtMjQgNjggLTI4IDk0IC00IDI3Ci0yMCA3OCAtMzcgMTE1IC0yNCA1NiAtMzUgNjkgLTYxIDc3IC00NyAxNCAtMTY3IDIwIC0yMDQgOXogbTE2IC0zODUgYzUgLTEwCjEyIC01MCAxNSAtOTAgNCAtNDggMTMgLTg1IDI4IC0xMTEgMjcgLTQ3IDIxIC02OCAtMjQgLTgwIC00MSAtMTEgLTE2NiAtNAotMTg0IDExIC0yMCAxNSAtMTUgNDkgMTMgOTAgMTQgMjEgMzEgNTcgMzggODEgMjYgODcgOTEgMTQzIDExNCA5OXoiLz48cGF0aCBkPSJNOTIyMyAxNzM0MCBjLTcwIC04IC0xMjEgLTE3IC0yMzUgLTQ2IC0zMiAtOCAtNzkgLTE0IC0xMDUgLTE0IC01NAowIC0xMTYgLTEwIC0yNTMgLTM5IC01MiAtMTIgLTE1MSAtMjYgLTIxOSAtMzEgLTc4IC02IC0xMzMgLTE1IC0xNDcgLTI1IC0zMQotMjAgLTM3IC02MCAtMjkgLTE5NiA4IC0xMzkgMjAgLTE2MyA3OCAtMTYzIDczIDAgMTE3IDQ3IDExNyAxMjMgMCAzMSA3IDQ5CjMwIDc1IDM0IDM4IDY2IDUxIDE1MSA2MSA2OSA4IDg1IC03IDkyIC04NSA3IC03MCAyMyAtMTU3IDM2IC0xOTUgNSAtMTYgMTUKLTg3IDIxIC0xNTYgNiAtNjkgMTkgLTE2MSAyOSAtMjA1IDI3IC0xMTMgMzUgLTE4OCAyMiAtMjEyIC02IC0xMSAtMzUgLTM0Ci02NSAtNTEgLTg4IC00OSAtMTEwIC0xMDEgLTYwIC0xNDAgMzMgLTI2IDYwIC0yNiAxNTUgLTIgNDEgMTAgMTE3IDI0IDE2OSAzMAozNDggNDMgMzYyIDQ4IDM2OCAxMTMgNSA1NyAtMjEgNzggLTEwNiA4OCAtNDAgNCAtNzggMTMgLTg2IDE5IC04IDYgLTE3IDM3Ci0yMSA2OSAtMyAzMSAtMTcgMTAzIC0zMSAxNTggLTEzIDU2IC0yOSAxNTMgLTM0IDIxNSAtNSA2MyAtMTMgMTMwIC0xOSAxNDkKLTYgMTkgLTExIDUyIC0xMSA3MyAwIDIxIC03IDU0IC0xNSA3NCAtMjIgNTIgLTIwIDExMCA1IDEyMyAzMyAxNyAxMzIgMjMgMTkyCjExIDczIC0xNiAxMDMgLTM5IDExNyAtOTUgNiAtMjYgMTkgLTUwIDMwIC01NiAzMyAtMTcgOTkgLTEyIDEyMSAxMCAyNCAyNCAyNAozMCA3IDczIC04IDE4IC0yMCA3NiAtMjcgMTMwIC0xNiAxMjEgLTIzIDEyOCAtMTMwIDEyNiAtNDEgLTEgLTEwNyAtNSAtMTQ3Ci05eiIvPjxwYXRoIGQ9Ik0xMTY1MSAxNzE2MSBjLTg5IC0zNyAtMTQ3IC05MCAtMTY1IC0xNDkgLTcgLTI2IC0yNCAtNjQgLTM2IC04NQotMTkgLTMzIC0yMiAtNDggLTE4IC0xMTAgNCAtNjEgMTEgLTg0IDQyIC0xNDAgMjEgLTM3IDQ0IC03MCA1MSAtNzQgNyAtNSA1MwotNDYgMTAyIC05MyA5MiAtODcgMTQzIC0xMzAgMTk4IC0xNjUgMTcgLTExIDUwIC00MSA3MyAtNjYgMzggLTQxIDQyIC01MSA0MgotOTYgMCAtNTcgLTE0IC03NCAtOTUgLTExNyAtNjIgLTMyIC04MiAtMzIgLTE2MiAtMSAtMTA4IDQ0IC0xNjUgOTQgLTIxMiAxODkKLTIyIDQ1IC00MSA5MyAtNDEgMTA1IDAgNTYgLTYxIDExMSAtMTA4IDk3IC0zOSAtMTMgLTk2IC0xNTIgLTkzIC0yMjkgMSAtNDEKLTEyIC03NCAtMzggLTk0IC0xNCAtMTEgLTEyIC0xNiAxOCAtNDQgMzQgLTMxIDM0IC0zMSAxMTUgLTI0IDc3IDYgODIgNSAxMDIKLTE3IDQ4IC01MyAxMDUgLTk3IDE0MSAtMTA4IDIxIC03IDU0IC0yMiA3MyAtMzQgMzIgLTE5IDUwIC0yMSAxOTAgLTIxIGwxNTUKMCA3MiA0OCBjNDQgMjkgNzkgNjAgODkgODAgOSAxNyAyOSA0NyA0NSA2NCAxNSAxOCAzMSA1MCAzNCA3MCA0IDIxIDEwIDUyIDE1CjY4IDQgMTcgMTEgNTYgMTMgODcgOCA5MSAtMjggMTU0IC0xNjYgMjkzIC02MyA2MiAtMTI3IDEyMiAtMTQzIDEzMiAtMTYgMTAKLTY3IDU3IC0xMTIgMTA0IC02MSA2NCAtODIgOTMgLTgyIDExMyAwIDU3IDM4IDg5IDEyMCAxMDEgMzggNSA1NSAxIDExNiAtMjkKNDAgLTE5IDgwIC00NiA5MCAtNjAgMTEgLTE1IDMxIC00MyA0NiAtNjIgMTggLTIzIDI5IC01NCAzNCAtOTAgOCAtNzEgNDIKLTExNCA4OCAtMTE0IDE5IDAgMzkgNyA0OCAxOCAzMiAzNyA4NSAyNTMgNzcgMzEyIC02IDM4IC00MyA1MiAtMTIyIDQ0IC02NwotNiAtNzAgLTUgLTEyMSAzMCAtMjkgMjAgLTkzIDUwIC0xNDEgNjYgLTEyMSA0MSAtMjM4IDQxIC0zMzQgMXoiLz48cGF0aCBkPSJNNzg1MCAxNzA1OSBjLTMwIC0xMSAtOTEgLTMxIC0xMzUgLTQ0IC00NCAtMTIgLTk3IC0zMiAtMTE3IC00MyAtMjEKLTExIC02NCAtMjMgLTk1IC0yNyAtNTggLTcgLTEwOCAtMjggLTE1MCAtNjIgLTM0IC0yOCAtMzQgLTY5IDAgLTEwOCAxOSAtMjMKMzEgLTI2IDg4IC0yOCA4MiAtMyAxMTEgLTIxIDEyOCAtNzggNyAtMjQgMjIgLTYxIDMyIC04MSAxMSAtMjEgMjYgLTY5IDM0Ci0xMDggOCAtMzkgMjQgLTg5IDM1IC0xMTEgMTIgLTIyIDI1IC02NiAzMSAtOTcgNiAtMzEgMjEgLTc1IDM0IC05NyAyNSAtNDQKNDUgLTEzMyA0NSAtMjAzIDAgLTQ1IDAgLTQ2IC04OCAtMTIzIC0xOCAtMTUgLTIyIC0yNiAtMTggLTQ3IDkgLTM4IDUzIC03NQo4MCAtNjggMTIgNCA0NiAxMSA3NiAxNyAzMCA2IDY5IDE5IDg1IDI5IDE3IDkgNTkgMjMgOTUgMjkgMzYgNyA4NiAyMyAxMTEgMzYKMjUgMTMgNzIgMjggMTA0IDM0IDU3IDExIDc4IDIxIDEwMiA1MSAxOSAyMyAxNSA3NSAtOCAxMDQgLTE3IDIxIC0yOSAyNiAtNjcKMjYgLTYwIDAgLTEyNyAzMiAtMTQwIDY4IC02IDE1IC0xMyA0NiAtMTYgNjkgLTMgMjMgLTE3IDYzIC0zMSA4OSAtMTQgMjYgLTI1CjU1IC0yNSA2NiAwIDIxIC02OSAyMzkgLTEwNSAzMzUgLTUzIDEzNyAtNDIgMjE0IDM4IDI1MSAyNCAxMSA0NyAyOCA1MCAzNiAxMAoyNiAtMTQgNzYgLTQ0IDkxIC0zNyAyMCAtNjMgMTggLTEyOSAtNnoiLz48cGF0aCBkPSJNNjk0MiAxNjczMCBjLTEzIC02IC0yOSAtMjUgLTM3IC00NCAtMjAgLTQ4IC01MCAtNjYgLTExMCAtNjYgLTIzMwotMiAtNDQyIC0xNzQgLTQ2OSAtMzg3IC02IC00NCAtMiAtNjIgMTcgLTEwNSAxNCAtMjkgMjggLTY4IDMyIC04NyA5IC00MSA4NwotMTI4IDEzMCAtMTQ2IDYyIC0yNyAyNTQgLTQ4IDM1NSAtMzkgMTc5IDE1IDIyOCAxMSAzMDEgLTI0IDcwIC0zMyA4OSAtNTggODkKLTExNSAwIC04NiAtODEgLTE1NiAtMjAzIC0xNzYgLTk4IC0xNiAtMjIyIDcgLTI3NyA1MCAtMTkgMTUgLTUzIDM3IC03NiA0OAotMzQgMTggLTQ2IDIwIC03MCAxMSAtNzQgLTI5IC04MiAtNzIgLTI5IC0xNjYgMTkgLTM0IDM1IC02OSAzNSAtNzYgMCAtMTcgOTEKLTEzNyAxMTQgLTE1MCAyMSAtMTIgNzEgMTUgOTMgNTAgMTAgMTUgMjQgMzEgMzMgMzcgMjAgMTIgMTM4IDQ0IDE3MCA0NSAzNiAxCjE1MCAzOCAxODAgNTggMTMgOSA0MyAyNiA2NSAzNyA2NyAzMyAxNDEgMTIxIDE3MCAyMDIgMzkgMTEzIDQxIDE1NyAxMSAyNTIKLTE0IDQ1IC0zMSA5MiAtMzcgMTA0IC0yNiA1MCAtODMgMTA4IC0xMzQgMTM3IC03MCA0MCAtMTcxIDUxIC00NDcgNDkgLTE3MwotMiAtMjAxIDAgLTIyNSAxNiAtNDMgMjcgLTYzIDU3IC02MyA5MyAwIDI4IDkgNDIgNTIgODIgNDggNDUgNTggNTAgMTE3IDU2CjEwMyAxMSAxNjAgMCAyNDMgLTQ1IDg0IC00NiAxMDkgLTUwIDE1NiAtMjEgMzkgMjQgNDAgMzkgNyA3OCAtMTQgMTcgLTI1IDM4Ci0yNSA0OCAwIDI2IC03NyAxNzYgLTk3IDE5MiAtMTkgMTQgLTM5IDE0IC03MSAyeiIvPjxwYXRoIGQ9Ik0xMzMxMiAxNjYxOSBjLTI2IC0xMCAtNDUgLTU0IC0zNyAtODYgMyAtMTMgMjEgLTM3IDQxIC01NSAyOSAtMjcKMzUgLTM4IDMwIC02MSAtNiAtMzIgLTc2IC0xNjAgLTEzNiAtMjUyIC0yMiAtMzMgLTUxIC04MyAtNjQgLTExMCAtNjQgLTEzNAotMTkwIC0zMjYgLTIyOCAtMzQ2IC0xMSAtNiAtNDIgLTcgLTcyIC00IC0zNCA1IC02MSAzIC03NSAtNSAtNTcgLTMwIC00MQotMTE5IDI2IC0xNDYgMjEgLTkgNTMgLTI3IDcyIC00MiA0MCAtMzAgOTkgLTY0IDE2MCAtOTIgMjQgLTExIDU5IC0zNCA3OCAtNTAKMTggLTE3IDM5IC0zMCA0NiAtMzAgNyAwIDI5IC0xMSA0OSAtMjUgMjAgLTE0IDQzIC0yNSA1MSAtMjUgMTkgMCA3NyA2NiA3Nwo4NyAwIDggLTE2IDMzIC0zNSA1NCAtNDAgNDUgLTQzIDY4IC0xNiAxMzYgNTggMTQ2IDEzOSAyMjQgMTg1IDE3OCAyMCAtMjAgMzMKLTY5IDQ2IC0xNzAgNiAtNDQgMTYgLTEwOCAyMiAtMTQyIDE0IC03OCA1IC05MyAtNTkgLTkzIC03NSAwIC0xMjMgLTM2IC0xMjMKLTkzIDAgLTM5IDI4IC02MyAxMzMgLTExNiA4NiAtNDMgMTMwIC02OSAyMzcgLTE0MSAxNCAtMTAgNDYgLTI3IDcwIC00MCAyNQotMTIgNTMgLTI5IDYyIC0zOCAxMCAtOCAzOSAtMjAgNjUgLTI3IDQxIC0xMCA1MyAtMTkgODMgLTY0IDIwIC0yOCA0NyAtNTkgNjEKLTY5IDE0IC05IDEwNiAtOTMgMjAzIC0xODcgMTg1IC0xNzggMjA2IC0xOTEgMjUyIC0xNjAgNTAgMzIgNTIgMTA3IDQgMTUwCi0zMyAzMCAtMjUgNjggMjggMTMyIDc0IDg4IDE0MiAxNTMgMTYxIDE1MyAyMyAwIDgxIC02MSA4MSAtODUgMCAtMTAgLTkgLTQ4Ci0xOSAtODQgLTExIC0zNiAtMjYgLTkxIC0zNSAtMTIxIC04IC0zMCAtMjEgLTczIC0yOSAtOTYgLTE4IC00NiAtNDEgLTIzNwotMzMgLTI2OCAzIC0xMiA2OCAtODMgMTQ0IC0xNTkgMTIyIC0xMjEgMTQ0IC0xMzkgMTc4IC0xNDQgMzggLTUgMzkgLTQgNTIgMzQKMjYgNzcgMjYgODMgLTQgMTE0IC0yNyAyOSAtMjkgMzUgLTI3IDEwNiAyIDQxIDEzIDEyOCAyNSAxOTIgMTMgNjQgMjMgMTQ4IDIzCjE4OCAwIDQxIDUgNzcgMTIgODQgNyA3IDUxIDExIDEyNyAxMCAxMzYgLTIgMTYwIDYgMjMxIDc2IDkwIDkwIDk1IDEwMCA5NQoyMDAgMCAxMDAgLTIgMTA0IC0xMjcgMjY3IC03MCA5MiAtMTAxIDEyNCAtMjg4IDI5OSAtMjE3IDIwNCAtMjY0IDI0MSAtMzAwCjI0MSAtNzUgMCAtOTggLTcxIC00NSAtMTM0IDE3IC0xOSAzMCAtNDIgMzAgLTUxIDAgLTE5IC00OSAtODMgLTEyNyAtMTY2IC0yNgotMjkgLTY2IC03NiAtODggLTEwNSAtNDYgLTYwIC0xNzkgLTE5NSAtMjgwIC0yODUgLTgxIC03MyAtOTcgLTc2IC0yMDYgLTQxCi00OCAxNiAtNzEgMjkgLTc1IDQzIC00IDEwIC0yNCAzNiAtNDUgNTcgLTc3IDc3IC04NSAxMDEgLTk5IDMxMyAtMTEgMTczIC0zMAozNTcgLTQ2IDQ0MyAtMTMgNjggNTAgOTYgMjcxIDEyMiA4NSAxMCAxMTEgOSAxNzMgLTQgMTAzIC0yMiAxMTkgLTIxIDE1MyAxNQo0NCA0OCAzOSA3NyAtMjIgMTIyIC0yOSAyMSAtNzUgNDcgLTEwNCA1OCAtMjkgMTEgLTYwIDI4IC02OSAzOCAtMTAgMTEgLTMyCjI1IC00OSAzMiAtMTggNyAtNDEgMjAgLTUyIDI5IC0xMSA5IC00NiAzMSAtNzggNDkgLTU2IDMxIC02MCAzMSAtODMgMTYgLTMzCi0yMiAtNDMgLTUxIC0zMiAtOTggNiAtMjggNSAtNDQgLTQgLTU0IC0yMyAtMjggLTEwNyAtNjMgLTE4MCAtNzQgLTQxIC02IC05MQotMjEgLTExNSAtMzUgLTc2IC00NCAtMTE1IC0yNSAtODcgNDIgMjYgNjQgMTAxIDE3MCAxMjkgMTgyIDE0IDcgNTMgMTIgODYgMTIKNTQgMCA2NCAzIDkwIDI5IDI4IDI5IDM2IDU2IDIxIDc2IC0xMCAxNCAtMTE1IDg1IC0xMjUgODUgLTUgMCAtMjcgMTMgLTUwIDI5Ci03NCA1MCAtMTgzIDExMSAtMTk5IDExMSAtOSAwIC0yOSAxMSAtNDUgMjQgLTUzIDQzIC0xMTAgNjEgLTE1MSA0NXogbTE4NTQKLTE0NDcgYzYwIC02NyA2OCAtODggNTkgLTE0NCAtOSAtNTEgLTc2IC0xMTggLTE1NCAtMTU0IC02NSAtMjkgLTczIC0zMCAtMTMwCi0zIC05NSA0NSAtMTM5IDExNCAtODggMTQwIDIzIDEyIDQ5IDM5IDE1MCAxNTIgNzggODcgOTQgODggMTYzIDl6Ii8+PHBhdGggZD0iTTU2MTUgMTU4NzMgYy02MiAtMTYgLTE4OSAtNzYgLTIzNiAtMTEyIC0zMCAtMjQgLTc4IC02MCAtMTA3IC04MgotMjkgLTIyIC03MCAtNTggLTkwIC04MCAtMjAgLTIxIC00MyAtMzkgLTQ5IC0zOSAtNyAwIC0zMCAtMTUgLTUwIC0zMyAtMjEKLTE4IC00OCAtMzkgLTU5IC00NyAtMTIgLTggLTY1IC00OCAtMTE3IC04OCAtMTMyIC0xMDEgLTE0MyAtMTM2IC02MSAtMTk4IDMyCi0yNSAzOCAtMjYgNTcgLTE0IDgyIDUyIDExNSA0OSAxNzQgLTEzIDQ2IC00OSAxNDAgLTE2MSAyMzMgLTI3NiAzNiAtNDUgOTIKLTExNCAxMjYgLTE1NCAzNCAtMzkgNzMgLTkzIDg4IC0xMTkgMzAgLTUxIDI5IC01OSAtMjEgLTEyNCAtMzAgLTQwIC0yOSAtNzUKMyAtMTEzIDE5IC0yMyAzNCAtMzEgNTkgLTMxIDI4IDAgNDYgMTIgMTA0IDY4IDgwIDc3IDEzNSAxMjMgMTcxIDE0MiAyMiAxMQoxMjcgOTYgMTk3IDE1OSAzNSAzMSA0MCA2OCAxMiA5NyAtMjYgMjcgLTE4IDI3IC0xNTYgOSBsLTUyIC03IC02MyA2NSBjLTgwCjg0IC0xMzEgMTQyIC0xMzYgMTU2IC03IDIyIDI3IDU3IDY3IDY5IDM1IDExIDUwIDEwIDExMyAtOSA0MCAtMTIgOTYgLTM0IDEyMwotNDkgMjggLTE1IDY0IC0zMSA4MCAtMzQgMTcgLTQgNTkgLTIxIDk0IC0zOCA1MiAtMjUgNzcgLTMxIDEzNSAtMzIgbDcxIC0xCjc1IDYzIGMxMTkgMTAxIDE2MyAxMzYgMTk3IDE2MSA2MSA0MiA1MyA5NSAtMTkgMTMyIC0zOSAyMCAtNDIgMjAgLTc4IDQgLTQ5Ci0yMiAtMTU3IC0xNiAtMjI1IDEyIC01OCAyNCAtMTk1IDU0IC0yNzggNjAgLTQzIDQgLTYwIDkgLTY3IDI0IC0xMyAyMyAtMyA2NQoyMyAxMDIgMjYgMzkgMjYgMTEzIC0yIDE3MSAtMzYgNzIgLTgwIDEyNiAtMTE5IDE0NSAtMjAgOSAtNTMgMjcgLTcyIDM5IC0zNAoyMSAtOTQgMjcgLTE0NSAxNXogbS00MCAtMzE0IGMzOSAtMzIgNTUgLTU1IDczIC0xMDIgMjAgLTU0IDIyIC02NyAxMiAtMTA2Ci0xMSAtNDYgLTkyIC0xNTEgLTExNSAtMTUxIC0xOSAwIC0xOTQgMjAyIC0yMjQgMjU5IC0yMCAzNiAtNiA2NiA0NiA5OCA2NyAzOQo3MyA0MiAxMTggNDIgMzMgMSA0OSAtNyA5MCAtNDB6Ii8+PHBhdGggZD0iTTk5NzUgMTU3OTkgYy0yNyAtNSAtOTkgLTggLTE2MCAtNyAtNjAgMCAtMTQ2IC00IC0xOTAgLTEwIC00NCAtNgotMTQ1IC0xNiAtMjI1IC0yMiAtMTg5IC0xNCAtMjg4IC0yNyAtMzgwIC01MCAtNDEgLTExIC0xMDYgLTIyIC0xNDUgLTI2IC0zOAotMyAtMTAxIC0xNyAtMTM5IC0zMCAtMzggLTEzIC0xMDMgLTI4IC0xNDUgLTMzIC00MiAtNiAtMTA3IC0yMiAtMTQ2IC0zNiAtMzgKLTE1IC05NyAtMzEgLTEzMCAtMzYgLTMzIC02IC03MCAtMTcgLTgyIC0yNCAtMTIgLTggLTU3IC0yNCAtMTAwIC0zNiAtNDMgLTEyCi05NCAtMjkgLTExMyAtMzkgLTE5IC0xMCAtNTUgLTIzIC04MCAtMzAgLTI1IC02IC02MCAtMjAgLTc3IC0zMCAtMTggLTExIC01NgotMjYgLTg1IC0zNCAtMjkgLTkgLTc1IC0yNyAtMTAzIC00MSAtMjcgLTEzIC03MCAtMzQgLTk1IC00NSAtMjUgLTExIC01NiAtMjcKLTcwIC0zNSAtMTQgLTggLTQxIC0yMiAtNjAgLTMxIC0xOSAtOCAtNjYgLTMzIC0xMDUgLTU0IC0zOCAtMjEgLTkzIC01MCAtMTIyCi02NSAtMjkgLTE1IC01NyAtMzMgLTYzIC00MCAtNyAtOCAtMjggLTE5IC00OCAtMjYgLTIwIC03IC01MCAtMjIgLTY3IC0zNAotMTYgLTEyIC00NSAtMjcgLTYzIC0zMyAtMTkgLTcgLTQ5IC0yNCAtNjcgLTM5IC0xOCAtMTYgLTU2IC00MSAtODUgLTU4IC0xMTIKLTY1IC0zNTcgLTIyNiAtNDAzIC0yNjUgLTE2NiAtMTQzIC0yMTIgLTE4MyAtMjc3IC0yNDQgLTQyIC0zOSAtMTM0IC0xMjMKLTIwNSAtMTg2IC0xNDUgLTEzMCAtMTk4IC0xODEgLTM0MCAtMzMzIC0xMDAgLTEwNiAtMTI2IC0xMzggLTIxMCAtMjUyIC0yNQotMzMgLTcxIC05NCAtMTAyIC0xMzcgLTMyIC00MiAtNzQgLTk5IC05MyAtMTI3IC0xOSAtMjkgLTQ4IC02OSAtNjUgLTkwIC0xNgotMjEgLTM4IC01MiAtNDcgLTY3IC0xNyAtMjcgLTMwIC00NyAtOTkgLTE1MCAtMTUgLTIyIC0zNCAtNDYgLTQ0IC01NCAtOSAtOAotMjggLTM3IC00MiAtNjUgLTEzIC0yNyAtMzkgLTc3IC01OCAtMTEwIC0xMzIgLTIzNSAtMzM1IC02NTcgLTMzNSAtNjk2IDAgLTgKLTEyIC0zOSAtMjYgLTY5IC0xNCAtMzAgLTM0IC04MyAtNDQgLTExNiAtMTAgLTM0IC0yNSAtNzMgLTM0IC04NiAtOSAtMTQgLTIzCi01OCAtMzIgLTk5IC04IC00MCAtMjQgLTg3IC0zNCAtMTA0IC0xMCAtMTcgLTI0IC02MSAtMzAgLTk5IC02IC0zOCAtMjEgLTk0Ci0zNCAtMTI1IC0xMyAtMzEgLTI2IC04NyAtMzAgLTEyNiAtNCAtMzggLTE1IC04OCAtMjYgLTExMiAtMjIgLTUwIC0zNyAtMTIyCi00NSAtMjI0IC00IC00MSAtMTggLTEwNyAtMzIgLTE0NSAtMTMgLTM4IC0yOCAtMTAzIC0zMyAtMTQ0IC0xNyAtMTUyIC0zMQotMjY3IC00MSAtMzUwIC0xNyAtMTI1IC0yMyAtNzEwIC05IC04NjUgNiAtNzEgMTUgLTE3MyAxOSAtMjI2IDQgLTUyIDExIC0xMDEKMTUgLTEwOCA0IC03IDEyIC01NyAxNyAtMTEyIDQgLTU0IDE5IC0xMzQgMzMgLTE3NyAxMyAtNDIgMjkgLTEyMCAzNSAtMTcyIDcKLTUyIDIxIC0xMTUgMzIgLTE0MCAxMSAtMjUgMjQgLTc3IDI5IC0xMTUgMTIgLTk0IDI3IC0xNjEgNDUgLTE5NCA3IC0xNSAxOQotNTkgMjYgLTk3IDYgLTM4IDIyIC04OSAzNSAtMTE0IDEyIC0yNSAyOCAtNzIgMzQgLTEwNSA3IC0zMyAyMCAtNzYgMzAgLTk1IDkKLTE5IDIzIC01MyAzMCAtNzUgNiAtMjIgMjUgLTY5IDQwIC0xMDUgMTYgLTM2IDM1IC04NSA0MyAtMTEwIDMzIC0xMDEgMTY4Ci0zODYgMjU3IC01NDUgMjEgLTM4IDUxIC05NCA2NiAtMTI0IDIyIC00NCAxODAgLTI4NiAzMTUgLTQ4MSAyNyAtMzkgODkgLTEyMAoxNDkgLTE5NSAyMiAtMjcgNDggLTYxIDU3IC03NSA5IC0xNCAzMSAtNDEgNDggLTYxIDQ4IC01OCA4NyAtMTA2IDEwNCAtMTMzCjMzIC00OSA3NiAtMTAyIDEyMSAtMTQ2IDI1IC0yNSA2OCAtNzAgOTYgLTEwMCAyOCAtMzAgODYgLTg0IDEzMCAtMTE5IDQzIC0zNQoxMzUgLTExNiAyMDQgLTE4MSAxNTAgLTE0MCAxOTIgLTE3NyAyNDcgLTIxNCAyMyAtMTUgNDQgLTMzIDQ2IC00MSAzIC03IDQ3Ci00NCA5OSAtODMgNTEgLTM5IDEwNyAtODIgMTIzIC05NSAxNyAtMTMgNDggLTM0IDcwIC00NiAyMiAtMTIgNjAgLTM1IDg1IC01MQoyNSAtMTcgNTggLTM4IDc0IC00OCAxNSAtOSA0MiAtMjcgNjAgLTM5IDE3IC0xMyA1MCAtMzEgNzIgLTQyIDIzIC0xMSA0NSAtMjUKNDkgLTMxIDQgLTcgMzEgLTIzIDU5IC0zNSAyOSAtMTMgNTggLTMwIDY1IC0zOCA3IC05IDI5IC0yMSA0OSAtMjggMjAgLTYgNTgKLTI0IDgzIC00MCAyNSAtMTYgNTAgLTI5IDU1IC0yOSA2IDAgMzAgLTEzIDU1IC0yOSAyNSAtMTUgNjMgLTM0IDg1IC00MSA0MgotMTQgMTYzIC03MiAyMDIgLTk4IDM5IC0yNiAxNzMgLTgzIDIzMiAtOTkgMzAgLTggNjkgLTIzIDg1IC0zMyAxNyAtMTAgNjEKLTI2IDk5IC0zNCAzOCAtOSA4MyAtMjUgMTAwIC0zNSAxNyAtMTEgNTcgLTI0IDkwIC0zMSAzMiAtNyA4NCAtMjEgMTE1IC0zMgozMSAtMTAgODkgLTI2IDEyOSAtMzQgNDAgLTcgODYgLTIxIDEwMiAtMjkgMTYgLTggNTkgLTIwIDk3IC0yNSAxMDAgLTE2IDIwMQotMzYgMjYzIC01NCAzMCAtOSAxMTEgLTIxIDE4MCAtMjYgNjkgLTYgMTc5IC0yMCAyNDUgLTMxIDI2MSAtNDQgMTIzNSAtNDEKMTM4MiA1IDEwIDMgOTcgMTQgMTkzIDI1IDk2IDExIDE5NCAyNyAyMTcgMzUgMjIgOCA4OCAyMSAxNDYgMzAgNTggOSAxMjggMjUKMTU1IDM1IDI4IDExIDkwIDI3IDEzOSAzNiA0OCA4IDExMiAyNCAxNDAgMzUgMjkgMTEgNzQgMjUgMTAwIDMwIDI3IDYgNzMgMjEKMTA0IDM1IDMwIDEzIDgwIDMwIDExMCAzNiAzMCA2IDY4IDE5IDg0IDI5IDE3IDEwIDU3IDI2IDkwIDM1IDMzIDEwIDc0IDI2IDkwCjM2IDE3IDEwIDUzIDIzIDgwIDI5IDI3IDYgNjcgMjQgODkgNDAgMjIgMTcgNDQgMzAgNDkgMzAgMTMgMCAxNzkgODQgMjUyIDEyNwozMyAyMCAxMTEgNjIgMTc0IDk1IDYzIDMyIDEyMiA2NSAxMzAgNzIgOSA4IDM0IDIzIDU2IDM1IDIyIDEyIDU0IDMyIDcxIDQ0CjE4IDEyIDQ1IDMwIDYwIDM5IDE2IDEwIDQ5IDMxIDc0IDQ4IDI1IDE3IDU4IDM4IDczIDQ4IDE0MCA4NiAzMDMgMjA3IDM5MgoyOTIgMzMgMzEgMTEyIDEwMiAxNzUgMTU3IDYzIDU1IDE0MyAxMjkgMTc3IDE2NCAzNCAzNSA5MCA4NyAxMjQgMTE0IDgwIDY0CjIwNSAxOTMgMjY3IDI3NyAyNiAzNiA2MCA3OCA3NSA5NCAyNSAyNyAxMjggMTU4IDE5NCAyNDcgMTUgMjEgNDAgNTIgNTQgNzAKMTQgMTggNDcgNjQgNzIgMTAyIDI1IDM5IDU4IDg2IDcyIDEwNSA0OSA2NiAxMTUgMTc0IDExNSAxODcgMCA4IDIwIDM1IDQ0IDYxCjI0IDI2IDU2IDcyIDcwIDEwMiAxNSAzMCA0NiA5MSA3MSAxMzUgMjUgNDQgNTIgOTYgNjAgMTE1IDggMTkgMjIgNDYgMzAgNjAKMzMgNTkgMTAzIDIwNyAxMDkgMjMzIDQgMTUgMTggNTIgMzEgODEgMjUgNTQgNTQgMTI4IDEwNSAyNjYgMTUgNDEgMzQgOTEgNDMKMTEwIDggMTkgMjAgNjAgMjcgOTAgNyAzMCAyMyA3NSAzNSAxMDAgMTMgMjUgMjYgNzAgMzAgMTAwIDQgMzAgMTYgNzUgMjYgMTAwCjExIDI0IDI3IDg1IDM1IDEzNSA4IDQ5IDI0IDExNyAzNCAxNTAgMTEgMzMgMjQgOTQgMzAgMTM1IDYgNDEgMjIgMTI5IDM1IDE5NgoxNiA3OCAzMCAyMDcgNDAgMzY1IDkgMTM0IDIyIDI3MyAzMCAzMDkgMjEgOTMgMjIgNDkyIDIgNjIwIC05IDUyIC0yMSAxNzQKLTI3IDI3MCAtMTMgMjAyIC0yNCAzMDEgLTUwIDQyMCAtMTAgNDcgLTI0IDEyNSAtMzAgMTczIC02IDQ4IC0yMCAxMTEgLTMxCjEzOCAtMTAgMjggLTI1IDk0IC0zMyAxNDggLTcgNTMgLTIxIDExMSAtMzAgMTI5IC05IDE3IC0yNSA3NCAtMzUgMTI2IC0xMSA1MgotMjYgMTA1IC0zNSAxMTggLTggMTMgLTIyIDU0IC0yOSA5MSAtOCAzNiAtMjIgNzggLTMxIDkyIC05IDE0IC0yNiA1NSAtMzcgOTEKLTExIDM1IC0yOSA4MCAtNDAgOTggLTExIDE5IC0yNCA1OSAtMjkgOTAgLTYgMzYgLTE4IDY4IC0zNSA4NyAtMTQgMTcgLTI1IDM4Ci0yNSA0OCAwIDkgLTE2IDQ4IC0zNSA4NyAtMTkgMzggLTM1IDc0IC0zNSA4MCAwIDYgLTEyIDI5IC0yNiA1MCAtMTUgMjEgLTMzCjU2IC00MCA3NyAtNyAyMSAtMjIgNTAgLTMyIDY1IC0xMCAxNSAtMjUgNDMgLTMyIDYyIC03IDE5IC0yMyA0OSAtMzUgNjUgLTEyCjE3IC00MSA2NiAtNjQgMTEwIC0yNCA0NCAtNTMgOTAgLTY0IDEwMyAtMTEgMTIgLTMwIDM3IC00MSA1NiAtMTIgMTkgLTM0IDUzCi01MCA3NyAtMTYgMjQgLTQyIDY0IC01NyA4OSAtMTUgMjUgLTQwIDYxIC01NCA4MCAtMTQgMTkgLTYyIDg1IC0xMDYgMTQ1IC00NQo2MSAtMTA1IDEzNyAtMTMzIDE3MCAtMjkgMzMgLTU5IDcxIC02NiA4NSAtMTIgMjIgLTQ3IDY4IC0xMDUgMTM5IC00OCA1OQotMzQzIDM0OCAtNDc1IDQ2NiAtODAgNzEgLTE2OCAxNTIgLTE5NSAxODAgLTI4IDI3IC02OSA2MyAtOTAgODAgLTIyIDE2IC00NwozNiAtNTYgNDUgLTkgOCAtMzcgMzEgLTYzIDUwIC0yNiAxOSAtNjIgNDcgLTc5IDYxIC0xOCAxNCAtNTQgMzggLTgwIDU1IC0yNwoxNiAtNzAgNDMgLTk2IDU5IC0yNiAxNyAtNjIgMzkgLTgxIDUwIC0xOCAxMSAtNDQgMjkgLTU5IDQxIC0xNCAxMSAtNDYgMzIKLTcxIDQ2IC0yNSAxNCAtNzQgNDIgLTExMCA2MyAtMTE5IDcwIC00NDQgMjQ3IC00OTYgMjcwIC0yOCAxMyAtNTQgMjcgLTU4IDMzCi0zIDYgLTMwIDE4IC01OSAyOCAtMjggOSAtNjMgMjUgLTc3IDM0IC0xNCAxMCAtNDUgMjMgLTcwIDMwIC0yNSA2IC02MyAyMgotODUgMzQgLTIyIDEzIC02MiAyOSAtOTAgMzUgLTI3IDcgLTYzIDIxIC04MCAzMSAtMTYgMTAgLTU3IDIzIC05MCAzMCAtMzMgNgotODQgMjMgLTExNCAzNyAtMzAgMTQgLTg0IDI5IC0xMjAgMzQgLTM2IDUgLTkzIDIxIC0xMjcgMzQgLTMzIDEzIC05NCAyOQotMTM0IDM2IC00MCA2IC05MyAyMCAtMTE3IDMwIC0yNSAxMCAtODQgMjMgLTEzMiAyOSAtOTcgMTEgLTE1NyAyMiAtMjQ2IDQ0Ci0zMyA4IC0xNTIgMjIgLTI2NSAzMSAtMTEzIDkgLTIxMiAxOSAtMjIwIDIyIC04IDMgLTEwMyA5IC0yMTAgMTQgLTEwNyA0Ci0yMjAgMTAgLTI1MCAxMyAtMzAgMiAtNzcgMSAtMTA1IC01eiBtMjU3IC0zNTAgYzcyIC0xOSA2OCAzOCA2OCAtOTkyIDAgLTc4MQoyIC05MjYgMTQgLTk0MyAxNCAtMTkgMzcgLTE5IDk0NyAtMjIgNTg0IC0xIDkzNyAtNiA5NDQgLTEyIDE2IC0xMyAyMCAtMzU3IDQKLTM3NiAtMTAgLTEyIC0xNjQgLTE0IC05MTkgLTE0IC02MDcgMCAtOTE3IC0zIC05MzcgLTEwIC0xNyAtNiAtMzUgLTIyIC00MgotMzYgLTggLTE4IC0xMSAtNjg5IC0xMSAtMjU3MCBsMCAtMjU0NSAtMjUgLTI0IGMtMjQgLTI1IC0yNSAtMjUgLTIyNSAtMjUKLTIwMCAwIC0yMDEgMCAtMjI1IDI1IGwtMjUgMjQgMCAyNTU0IGMwIDI1MDAgMCAyNTU1IC0xOSAyNTc4IGwtMTkgMjQgLTkyMSAzCmMtODYyIDIgLTkyMSAzIC05MjkgMjAgLTUgOSAtOSA5MiAtOSAxODQgMCAxNDMgMiAxNzAgMTcgMTgzIDE0IDEzIDEzMiAxNQo5MjQgMTcgbDkwOCAzIDI0IDI4IDI0IDI4IDAgOTIyIGMxIDEwMTkgLTQgOTQ3IDY3IDk3MiA0NiAxNyAzMTAgMjAgMzY1IDR6Cm0tNjEyIC0zNyBsMjEgLTE3IDAgLTg0MCBjMCAtNzk3IC0xIC04NDAgLTE5IC04NTcgLTE3IC0xNyAtNjIgLTE4IC05MDkgLTE5Ci04MTMgMCAtODk0IC0yIC05MjQgLTE3IC0xOSAtOSAtMzggLTI2IC00NCAtMzggLTYgLTEzIC05IC0xMzcgLTggLTMzMSAxCi0yNTkgNCAtMzE1IDE3IC0zNDEgOCAtMTYgMjMgLTMyIDMxIC0zNiA5IC0zIDQxMCAtNiA4OTEgLTYgNTc4IDAgODgyIC0zIDg5NAotMTAgNDEgLTIyIDQzIC00NSAxMCAtMTM5IC0xNiAtNDkgLTMwIC05OSAtMzAgLTExMiAwIC0xMyAtMTAgLTQ0IC0yMSAtNjkKLTExIC0yNSAtMjcgLTc1IC0zNSAtMTEzIC03IC0zNyAtMjMgLTg2IC0zNSAtMTA4IC0xMSAtMjMgLTI3IC03MiAtMzUgLTEwOQotNyAtMzcgLTI1IC05MiAtMzkgLTEyMSAtMTQgLTMwIC0yNSAtNjMgLTI1IC03NCAwIC0xMSAtMTIgLTQ1IC0yNiAtNzQgLTE0Ci0zMCAtMjggLTc0IC0zMSAtOTggLTMgLTI0IC0yMSAtNjYgLTM5IC05NSAtMTkgLTI5IC0zNCAtNTkgLTM0IC02OCAwIC05IC0xMwotMzYgLTI5IC02MSAtMTUgLTI1IC0zNCAtNjMgLTQxIC04NSAtNyAtMjEgLTIzIC01OSAtMzUgLTg0IC0xMyAtMjUgLTI4IC02NgotMzQgLTkwIC02IC0yNSAtMjAgLTYzIC0zMCAtODUgLTExIC0yMiAtMzMgLTY5IC00OSAtMTA1IC0zOCAtODMgLTEzOCAtMjg3Ci0xNTYgLTMyMCAtNyAtMTQgLTM3IC03MiAtNjYgLTEzMCAtMjkgLTU4IC01OCAtMTEyIC02NSAtMTIwIC04IC04IC0yMyAtNDEKLTM1IC03MiAtMTIgLTMyIC0yNiAtNjAgLTMxIC02NCAtNSAtMyAtMjMgLTMzIC0zOSAtNjcgLTU2IC0xMTUgLTEyNCAtMjE5Ci0yNDkgLTM3OSAtMzQgLTQyIC02NiAtODkgLTczIC0xMDUgLTEyIC0yNyAtMjggLTQ5IC05MSAtMTIzIC0xNSAtMTggLTM1IC00OQotNDIgLTY4IC04IC0xOCAtNDEgLTY1IC03MiAtMTAzIC0zMiAtMzcgLTkyIC0xMTAgLTEzMyAtMTYwIC0xNTQgLTE4OSAtMjY5Ci0zMDcgLTQ1NSAtNDcwIC0zMyAtMjkgLTY2IC02MiAtNzQgLTczIC03IC0xMiAtMjYgLTMwIC00MiAtNDEgLTI1IC0xOCAtMTI4Ci05NSAtMjE3IC0xNjQgLTM1IC0yNyAtOTYgLTY4IC0xNDUgLTk5IC0xNiAtOSAtNDUgLTI5IC02NCAtNDQgLTE5IC0xNSAtNDQKLTMwIC01NiAtMzQgLTEyIC0zIC0zNSAtMTYgLTUyIC0yOCAtNzEgLTUzIC0zNjUgLTE5MSAtNDk1IC0yMzMgLTI1IC04IC02NwotMjUgLTk1IC0zOSAtMjcgLTE0IC03NiAtMjkgLTEwOSAtMzQgLTMyIC01IC03NyAtMjEgLTEwMSAtMzUgLTI0IC0xNCAtNzEKLTI5IC0xMDcgLTM0IC0zNCAtNSAtOTEgLTE4IC0xMjYgLTMwIC00NCAtMTUgLTEzMSAtMjggLTI5NSAtNDMgLTI1NCAtMjQKLTM5MiAtMjQgLTYyNiAtMiAtODUgOCAtMTcxIDE0IC0xOTEgMTQgLTQ3IDAgLTYwIDE1IC02OSA4MiAtNSAyOSAtMTggNzMgLTI5Cjk4IC0xMSAyNSAtMjUgODEgLTMyIDEyNSAtNiA0NCAtMjIgMTEyIC0zNSAxNTAgLTEzIDM5IC0yNiAxMDggLTMwIDE1NSAtNCA0NwotMTMgMTA1IC0yMCAxMzAgLTM2IDEyMCAtNjMgNDIyIC03NSA4NTAgLTUgMjEzIC00IDMxNCA2IDQwMCA3IDYzIDE4IDE5NiAyNAoyOTUgNiA5OSAxOCAyMTIgMjYgMjUwIDI4IDEyOSA0MyAyMjAgNDQgMjU2IDAgMTkgMTMgODAgMjkgMTM1IDE2IDU0IDMyIDEyMQozNiAxNDggNCAyOCAxNiA3MyAyNyAxMDAgMTEgMjggMjYgODUgMzMgMTI3IDcgNDEgMjIgOTEgMzMgMTEwIDExIDE5IDI2IDYxCjMzIDk0IDcgMzMgMjUgODUgNDAgMTE1IDE1IDMwIDMwIDczIDM0IDk1IDMgMjIgMTYgNTYgMjcgNzUgMTEgMTkgMjggNTggMzgKODUgMzEgODcgODYgMjA5IDExMiAyNDcgMTQgMjAgNDQgNzQgNjggMTIwIDgwIDE1NiAxMDkgMjEwIDEyMyAyMjcgOCA5IDIyIDM0CjMxIDU2IDkgMjEgMjQgNDggMzQgNTggMjMgMjYgNTYgODEgOTcgMTYyIDE5IDM5IDY0IDExMSAxMDAgMTYwIDM2IDUwIDc0IDEwNAo4NCAxMjAgNTkgOTEgMjMwIDI5NiAzNjUgNDM1IDQ2IDQ3IDkzIDEwMyAxMDYgMTI1IDIzIDM5IDMzNCAzMzQgNDM0IDQxMiAyNgoyMSA3OCA2NCAxMTUgOTYgMzYgMzIgODAgNjYgOTYgNzQgMTcgOSA0NSAyOSA2MyA0NCAxOCAxNiAzOSAyOSA0OCAyOSA4IDAgMjkKMTMgNDcgMzAgNzcgNzEgMTQxIDEyMSAyMDcgMTYyIDQwIDI0IDkzIDU3IDExOSA3MyAyNiAxNyA2MiAzOSA4MCA1MCAxOCAxMQo1NiAzNSA4NCA1MyAyOCAxNyA1NiAzMiA2MyAzMiA2IDAgMjcgMTEgNDYgMjMgMTkgMTMgNzcgNDMgMTI5IDY2IDUxIDI0IDE1Nwo3MiAyMzQgMTA2IDc3IDM1IDE1OCA2OCAxNzkgNzQgMjEgNiA0OSAxOSA2MCAzMCAxMiAxMiA0NSAyNSA3NCAzMSAyOCA1IDczCjIwIDk5IDM0IDI2IDEzIDc1IDMwIDEwOCAzNiAzMyA3IDc2IDIwIDk1IDMwIDE5IDkgNTkgMjMgODkgMzAgMzAgNyA2OSAyMSA4NQozMSAxNyAxMCA3OCAyNyAxMzYgMzggNTggMTAgMTIzIDI3IDE0NCAzNiAyMSA5IDgyIDIyIDEzNSAzMCA1MyA3IDE1MiAyNCAyMjEKMzggMTA1IDIyIDE5NyAzMiA0MTEgNDUgMTUgMSAzNyAtNiA0OSAtMTZ6IG0xMTk1IC04IGM3MiAtNyAxNTMgLTIwIDE4MCAtMjgKMjggLTggOTMgLTIwIDE0NSAtMjYgNTIgLTYgMTQwIC0yNCAxOTUgLTQwIDU1IC0xNiAxMjMgLTMyIDE1MCAtMzUgMjggLTQgNjgKLTE3IDkwIC0zMCAyMiAtMTIgNTYgLTI2IDc1IC0zMCAxOSAtNCA2MSAtMTggOTMgLTMyIDMzIC0xMyA4NCAtMjkgMTE1IC0zNAozMSAtNiA3NyAtMjEgMTAyIC0zNCAyNSAtMTIgNjEgLTI2IDgwIC0zMCAxOSAtNCA2MCAtMTkgOTAgLTM0IDMwIC0xNiA2OSAtMzEKODUgLTM1IDI4IC03IDk4IC0zOCAyNDAgLTEwNyAzMyAtMTYgNjMgLTI5IDY4IC0yOSAxMyAwIDE5NiAtOTAgMjAyIC05OSAzIC01CjI3IC0xNyA1MyAtMjcgMjYgLTEwIDYxIC0yOCA3NyAtNDAgMTcgLTEyIDQ2IC0yOSA2NSAtMzggMTkgLTkgNjIgLTM0IDk1IC01Ngo4MSAtNTMgMTY0IC0xMDYgMTk5IC0xMjggMTcgLTkgNTIgLTM3IDc5IC02MiA0OSAtNDQgNjMgLTU1IDIyMiAtMTY0IDQ3IC0zMgo5NCAtNjkgMTA0IC04MiA5IC0xMiAzMSAtMzEgNDcgLTQxIDE2IC0xMCA0NSAtMzMgNjQgLTUxIDE5IC0xNyA4MCAtNzEgMTM1Ci0xMTkgMTI3IC0xMTEgMjkzIC0yNzggMzQzIC0zNDYgMzcgLTUwIDE0OCAtMTc1IDE4MyAtMjA3IDIzIC0yMSAxMzIgLTE1MAoxNTIgLTE4MCA5IC0xNCAzNyAtNTIgNjIgLTg1IDg3IC0xMTYgMjA0IC0yOTIgMjA1IC0zMDggMCAtNSAxMyAtMjcgMjggLTUwCjQzIC02NCAxMDIgLTE2NCAxMDIgLTE3NSAwIC01IDEzIC0yNyAyOCAtNDggMzAgLTQxIDQwIC02MSAxMzQgLTI0OCAzMyAtNjYKNjkgLTEzMSA4MCAtMTQ3IDIyIC0yOSA1OSAtMTExIDg5IC0xOTggMTAgLTI5IDI3IC02NyAzOCAtODUgMTEgLTE3IDI1IC01MwozMiAtODEgNiAtMjcgMjIgLTcwIDM0IC05NSAxMyAtMjUgMjggLTcyIDM1IC0xMDUgNiAtMzMgMjEgLTc2IDMyIC05NSAxMSAtMTkKMjYgLTY4IDM0IC0xMTAgOCAtNDEgMjMgLTk5IDM0IC0xMjggMTEgLTI5IDI1IC04NSAzMSAtMTI1IDYgLTM5IDIwIC05NCAzMAotMTIyIDExIC0yNyAyNiAtMTAyIDM0IC0xNjYgOCAtNjQgMjQgLTE2MSAzNSAtMjE0IDExIC01NCAyNSAtMTU5IDMwIC0yMzQgNQotNzUgMTQgLTE5MiAyMCAtMjYxIDEzIC0xNjMgMTMgLTU2MCAwIC03MjUgLTUgLTcxIC0xNCAtMTk0IC0yMCAtMjczIC02IC03OAotMTUgLTE2MyAtMjAgLTE5MCAtMjYgLTEzMyAtMzkgLTIxNCAtNDUgLTI3NiAtNCAtMzcgLTE2IC05NCAtMjYgLTEyNSAtMTEKLTMxIC0zMSAtMTA1IC00NCAtMTY2IC0xMyAtNjAgLTMwIC0xMjggLTM4IC0xNTAgLTggLTIyIC0xOCAtNjAgLTIyIC04NSAtOQotNjAgLTI5IC04OCAtNzMgLTEwNyAtMzEgLTEzIC05NSAtMTYgLTM4NyAtMTYgLTMyNCAwIC0zNTcgMSAtNDUwIDIxIC01NSAxMgotMTUzIDI5IC0yMTcgMzcgLTc0IDkgLTEzMyAyMiAtMTU3IDM1IC0yMiAxMSAtNjQgMjUgLTkzIDMxIC0yOSA3IC03NyAyNQotMTA3IDQwIC0zMCAxNiAtNjYgMjkgLTgxIDI5IC0xNSAwIC00OSAxMiAtNzYgMjYgLTI3IDE1IC02OSAzMiAtOTQgMzkgLTI1IDcKLTYyIDI0IC04NCAzOCAtMjEgMTUgLTU1IDMxIC03NSAzNyAtMzIgOSAtOTkgNDEgLTI1MSAxMjEgLTI0IDEzIC02OSA0MCAtMTAwCjYxIC02MCA0MyAtMTA2IDczIC0xOTAgMTI3IC0zMCAxOSAtNjUgNDQgLTc3IDU2IC0xMiAxMSAtNDMgMzcgLTcwIDU4IC0xMTcKOTEgLTE0OCAxMTkgLTMxOCAyODEgLTI1MiAyNDAgLTUxOCA1MzQgLTU2MyA2MjMgLTExIDIxIC0yOCA0NSAtMzYgNTIgLTkgOAotMTYgMjAgLTE2IDI3IDAgOCAtMTUgMzEgLTMzIDUxIC0xOSAyMSAtNDcgNTggLTY0IDgzIC0xNyAyNSAtNDEgNTQgLTUzIDY1Ci0xMiAxMSAtMzkgNDQgLTU5IDc0IC05MiAxMzkgLTExMSAxNjggLTEyNSAxOTkgLTkgMTkgLTI3IDQ3IC00MSA2NCAtMTQgMTYKLTI1IDM2IC0yNSA0MyAwIDcgLTEwIDI2IC0yMyA0MiAtMjIgMjYgLTExNyAyMTAgLTExNyAyMjYgMCA0IC0xNiAzMCAtMzUgNTgKLTE5IDI4IC0zNSA1NiAtMzUgNjEgMCA1IC0xMyAyOCAtMjkgNTEgLTE1IDIzIC0zMyA1OSAtNDAgNzkgLTcgMjAgLTE4IDQyCi0yNiA0OCAtOCA2IC0xOSAyOCAtMjYgNDggLTYgMjAgLTI0IDYwIC0zOSA4NyAtMTUgMjggLTMxIDYxIC0zNSA3NSAtNCAxNAotMTggNDEgLTMxIDYwIC0xMiAxOSAtMjggNTUgLTM0IDgwIC03IDI1IC0yMCA1OSAtMzAgNzUgLTEwIDE3IC0yMyA0OCAtMzAgNzAKLTE1IDQ4IC04NyAxOTQgLTEwNiAyMTUgLTcgOSAtMjAgNDIgLTI4IDc0IC05IDMxIC0yNSA3MyAtMzYgOTEgLTExIDE4IC0yNwo1NyAtMzUgODcgLTggMjkgLTI2IDc1IC00MCAxMDIgLTE0IDI3IC0yNSA2MSAtMjUgNzUgMCAxNCAtMTIgNTMgLTI1IDg2IC0xNAozMyAtMzAgODAgLTM2IDEwNSAtNSAyNSAtMjEgNjggLTM1IDk3IC0xMyAyOSAtMzAgODAgLTM3IDExNSAtOCAzNSAtMjIgNzgKLTMxIDk3IC0xMCAxOSAtMjYgNzMgLTM2IDEyMCAtMTEgNDcgLTI0IDEwNSAtMzEgMTI4IC0xMSAzNSAtMTAgNDUgNCA2NyBsMTcKMjYgODgxIDAgYzkzNCAwIDkyNSAwIDk0MyA0NSAxMCAyOCA3IDY2NSAtNCA2ODUgLTUgMTAgLTIyIDIyIC0zNyAyOCAtMTggNgotMzAxIDggLTc2MyA1IC03NzggLTUgLTEwNDQgMCAtMTA3MyAyMiAtMTYgMTIgLTE3IDY2IC0xOCA4NTQgMCA0NjIgMyA4NDYgNgo4NTIgMjAgMzEgNjcgMzEgMzMwIDN6IG0tMTI3NSAtMzQ3MiBjMCAtMTAgLTcgLTI3IC0xNSAtMzggLTE0IC0xOSAtMTQgLTE5Ci0xNSAzIDAgMjggMTAgNTMgMjEgNTMgNSAwIDkgLTggOSAtMTh6IG0xMTM3IC04NCBjNCAtNyAxMCAtMzggMTQgLTY4IDQgLTM0CjE2IC02OSAzMiAtOTMgMTQgLTIxIDI4IC01MiAzMiAtNzAgNCAtMTggMTkgLTU5IDM0IC05MiAxNiAtMzMgMzUgLTgwIDQ0Ci0xMDUgMjQgLTcyIDY4IC0xNzMgODcgLTIwMCAxOCAtMjYgODcgLTE2MCAxMTQgLTIyMCA4IC0xOSAyMiAtNDYgMzAgLTYwIDgKLTE0IDMzIC02NSA1NyAtMTE1IDIzIC00OSA2NyAtMTM3IDk5IC0xOTUgMzEgLTU4IDYyIC0xMjEgNjkgLTE0MSA2IC0yMCAyMQotNDUgMzMgLTU1IDExIC0xMSAyOSAtMzcgNDAgLTU5IDM1IC03MyA3OSAtMTUwIDk4IC0xNzAgMTAgLTExIDIxIC0zMCAyNCAtNDIKNCAtMTMgMjMgLTQxIDQyIC02NCAxOSAtMjIgMzQgLTQ1IDM0IC00OSAwIC0xNSA5MiAtMTUxIDE1MSAtMjIzIDE0IC0xOCAzMwotNDUgNDIgLTYyIDggLTE2IDM0IC01MCA1NyAtNzQgMjMgLTI0IDU2IC02NSA3NCAtOTEgODAgLTEyMSAyMDIgLTI2MyA0MzUKLTUwOSAxODggLTE5OSAyNTcgLTI2NiAzMDYgLTI5OSAyMiAtMTQgNTcgLTQwIDc3IC01NyAyMSAtMTYgNTQgLTQzIDc0IC02MAoyMSAtMTYgNTIgLTM5IDcwIC01MCAzNyAtMjMgMTUxIC0xMDcgMTk5IC0xNDggMTggLTE1IDQ4IC0zMyA2NyAtNDEgMTggLTggNDIKLTI0IDUyIC0zNSAxMCAtMTEgMzUgLTI2IDU1IC0zMiAyMCAtNyA0OCAtMjIgNjMgLTM1IDE2IC0xMiAzOCAtMjYgNTAgLTMwIDEzCi00IDM5IC0xNyA1OCAtMzAgMjAgLTEzIDU5IC0zMSA4NyAtMzkgMjggLTggNTYgLTIyIDY0IC0zMSAxNSAtMTggMTg4IC0xMDQKMjA5IC0xMDQgOCAwIDM5IC0xMSA2OSAtMjUgMzAgLTE0IDg2IC0zMyAxMjUgLTQxIDM5IC05IDg3IC0yNSAxMDcgLTM0IDE5Ci0xMCA2OSAtMjMgMTEwIC0yOSA0MCAtNiAxMDIgLTIwIDEzNiAtMzEgMzUgLTExIDEwMCAtMjQgMTQ1IC0yOSAxMDIgLTEyIDQxMgotMjkgNDkyIC0yNyA2MyAxIDg3IC0xNiA0NCAtMzMgLTEzIC00IC00OCAtMTkgLTc4IC0zMSAtNjcgLTI3IC0xODMgLTQ5IC0yNzAKLTUwIC0zNiAwIC05NSAtNyAtMTMyIC0xNSAtNTMgLTExIC05OSAtMTIgLTIyNSAtNCAtMjk1IDE3IC00MDkgMzEgLTQ4OCA2MAotMjcgMTAgLTc5IDIzIC0xMTUgMjkgLTM2IDcgLTkwIDIwIC0xMjAgMzEgLTMwIDExIC04MiAyNiAtMTE1IDM1IC0zMyA4IC04NwoyOSAtMTE5IDQ1IC0zMyAxNiAtNjUgMjkgLTcxIDI5IC0zMCAwIC0zMDAgMTQyIC00MDcgMjE0IC0xNTggMTA2IC0xNzQgMTE2Ci0xODQgMTE2IC0xMiAwIC0xMjggNzYgLTE5OSAxMjkgLTIyIDE3IC02MiA0NiAtOTAgNjYgLTIxNSAxNTIgLTUxMyA0MjMgLTc0OAo2ODAgLTExOCAxMjkgLTE0NCAxNjQgLTI0MiAzMjQgLTExIDE4IC0zMiA0OSAtNDcgNjggLTE1IDE5IC0zMiA1MSAtMzkgNzEgLTYKMjAgLTIwIDQ5IC0zMSA2NCAtMTAgMTUgLTI1IDQ2IC0zMyA3MCAtMTQgNDEgLTI0IDYzIC05MCAyMDEgLTI4IDU5IC01OSAxNDAKLTk3IDI1MiAtMTAgMzMgLTMwIDgwIC00MyAxMDUgLTEzIDI1IC0yOCA3MCAtMzQgMTAxIC01IDMxIC0yMSA3MyAtMzUgOTMgLTE1CjIzIC0yNyA1OCAtMzEgOTQgLTQgMzEgLTE4IDgxIC0zMSAxMTAgLTEzIDI5IC0zMCA4OCAtMzggMTMwIC04IDQyIC0yMSA5MwotMjkgMTEyIC04IDE5IC0yNSA5MiAtMzYgMTYxIC0xMiA3MCAtMjggMTQ0IC0zNyAxNjQgLTggMjEgLTIyIDg5IC0yOSAxNTIgLTgKNjMgLTI0IDE0NSAtMzUgMTgxIC0yOCA4OCAtMzcgMTg2IC0yMCAyMDcgMTUgMTggMjYgMTkgMzcgM3ogbS0xMTc3IC04MyBjMAotNzMgLTIyIC0yMTYgLTUwIC0zMjAgLTEwIC0zOCAtMjEgLTEwNCAtMjUgLTE0NSAtMyAtNDEgLTE1IC0xMDIgLTI1IC0xMzUKLTExIC0zMyAtMzEgLTExNiAtNDQgLTE4NSAtMTQgLTY5IC0zMiAtMTQxIC00MCAtMTYxIC04IC0yMCAtMTggLTYwIC0yMSAtOTAKLTQgLTMwIC0xOSAtNzkgLTM1IC0xMDkgLTE1IC0zMCAtMzAgLTczIC0zNCAtOTUgLTQgLTIyIC0xOCAtNjEgLTMxIC04NiAtMTMKLTI1IC0yNiAtNjcgLTMwIC05NSAtNCAtMjcgLTE5IC03MSAtMzUgLTk5IC0xNSAtMjcgLTMwIC02OCAtMzQgLTkwIC00IC0yMgotMTggLTU4IC0zMSAtODAgLTEyIC0yMiAtMjggLTU3IC0zNSAtNzggLTYgLTIxIC0yMiAtNTcgLTM1IC04MCAtMTIgLTIzIC0yOAotNjAgLTM1IC04MiAtMTUgLTQ0IC0xMjcgLTI1NCAtMTc0IC0zMjYgLTExNSAtMTcyIC0yMjggLTMwNSAtNDIxIC00OTQgLTE0OAotMTQ1IC0zNTUgLTMzMCAtNDEwIC0zNjcgLTIyIC0xNSAtNTkgLTQyIC04MiAtNjAgLTIzIC0xOCAtNzcgLTYwIC0xMjAgLTkyCi00MyAtMzMgLTg5IC03MCAtMTAzIC04MiAtMTQgLTEyIC03MCAtNDUgLTEyNSAtNzQgLTU1IC0yOCAtMTExIC01OSAtMTI1IC02OQotMTQgLTEwIC00NyAtMzEgLTc0IC00NyAtMjYgLTE2IC02NyAtNDEgLTkwIC01NiAtNTAgLTMzIC0yMzggLTEyOCAtMjUzIC0xMjgKLTUgMCAtMjcgLTExIC00NyAtMjUgLTIxIC0xNCAtNjEgLTMxIC04OSAtMzcgLTI5IC02IC02OSAtMTkgLTkwIC0zMCAtMjEgLTExCi03OCAtMjggLTEyNiAtMzggLTQ4IC0xMSAtMTA3IC0yOCAtMTMxIC0zOSAtMjUgLTExIC05NyAtMjYgLTE2MCAtMzUgLTYzIC04Ci0xMzUgLTIyIC0xNjAgLTMxIC0zNyAtMTMgLTkyIC0xNiAtMzEwIC0xNiAtMTQ2IDAgLTI4NiA0IC0zMTAgMTAgLTI1IDUgLTExMAoxOSAtMTkwIDMxIC0xNTUgMjMgLTE4MiAzMyAtMTU1IDU5IDEyIDEyIDU3IDE4IDIwOCAyNyAxMDYgNiAyMTkgMTkgMjUyIDI3CjMzIDkgMTA5IDIxIDE2OCAyNyA2MCA2IDEzMiAyMCAxNjAgMzAgMjkgMTEgODUgMjYgMTI1IDM1IDQwIDggOTAgMjQgMTExIDM0CjIxIDExIDYwIDI1IDg3IDMyIDY1IDE1IDU5MyAyNzAgNjM1IDMwNiA5IDggMzUgMjQgNTYgMzYgNTcgMzEgOTggNTcgMTUzIDk3CjI3IDE5IDc0IDUzIDEwNiA3NSAzMSAyMiA4NCA2MyAxMTcgOTAgMzIgMjggNzMgNTkgOTAgNjkgMTggMTEgNTcgNDAgODcgNjYKMzAgMjUgNjYgNTMgNzkgNjMgMTMgOSAzMSAyNyA0MCA0MCA5IDE0IDQzIDUzIDc2IDg4IDI5MyAzMTEgNDIzIDQ2MSA1MDYgNTg0CjMwIDQ0IDYxIDg3IDY5IDk2IDggOSAzMyA0MCA1NSA2OCAyMiAyOSA1MiA2NiA2NiA4NCAxNSAxOCAzNiA1MSA0NyA3NCAxMiAyMgoyNiA0MyAzMCA0NSA1IDEgMjEgMjYgMzYgNTMgMTUgMjggNDcgNzkgNzMgMTE1IDI1IDM2IDY5IDEwOCA5NyAxNjAgNjYgMTIzCjg1IDE1NCAxMTggMTk2IDE0IDE5IDI5IDUzIDMzIDc1IDQgMjIgMTcgNTIgMzAgNjcgMTMgMTUgMjggNDggMzUgNzIgNiAyNSAyMgo1OSAzNCA3NSAzMiA0MiAxMDYgMTg1IDEwNiAyMDQgMCA5IDEzIDM2IDMwIDYxIDE2IDI0IDMyIDU4IDM2IDc1IDYgMzAgNTkKMTMyIDEwMSAxOTQgMTIgMTggMjUgNDkgMjkgNzAgNCAyMCAxOSA2MSAzNCA5MSAxNiAzMCAzMSA3MSAzNSA5MCA0IDE5IDE4IDUzCjMxIDc1IDEyIDIyIDI4IDYyIDM0IDkwIDEyIDUyIDM0IDg1IDU3IDg1IDkgMCAxMyAtMTcgMTMgLTY1eiBtMTAzNyAtMzc5IGM3Ci0yMiAxOCAtODAgMjQgLTEzMCA2IC01MCAxOSAtMTE4IDI5IC0xNTEgMTEgLTMzIDI2IC05OCAzNCAtMTQ1IDggLTQ3IDIzCi0xMDUgMzQgLTEzMCAxMSAtMjUgMjQgLTY3IDI3IC05NSA0IC0yNyAyMSAtODMgMzYgLTEyMyAxNiAtNDAgMjkgLTgwIDI5IC05MAowIC0yNiAyMyAtMTA0IDcwIC0yMzIgMjMgLTYzIDUzIC0xNDYgNjYgLTE4MyAxMyAtMzggMzIgLTgwIDQyIC05NSAyNiAtMzcgNzYKLTEzOSA5MSAtMTg0IDE1IC00NyAxMzkgLTI5MyAxNjcgLTMzMyAxMiAtMTcgMzEgLTUwIDQyIC03NSAxMiAtMjUgMzggLTY1IDU3Ci05MCAxOSAtMjUgNDggLTYzIDYzIC04NSA1MSAtNzUgODcgLTExOSAxNzcgLTIxNCA5MCAtOTUgMjQ4IC0yNTIgMjk1IC0yOTQKMTQgLTEyIDYwIC01MyAxMDIgLTkyIDQyIC0zOCAxMDEgLTg5IDEzMCAtMTEyIDE5OCAtMTU5IDIwNSAtMTY0IDM0OCAtMjczCjEyNCAtOTUgMTk0IC0xNDIgMjQ0IC0xNjYgMjggLTE0IDgwIC00MiAxMTYgLTY0IDM2IC0yMSA4OCAtNTEgMTE1IC02NSAyOAotMTQgNjEgLTMyIDc1IC0zOSA2MyAtMzUgMTcyIC04NiAxODQgLTg2IDcgMCAzNSAtMTEgNjIgLTI1IDI3IC0xNCA3NCAtMzMKMTA0IC00MSAzMCAtOSA3MiAtMjUgOTMgLTM2IDIwIC0xMCA3NSAtMjUgMTIwIC0zMyA0NiAtOCAxMDQgLTIzIDEyOCAtMzQgMjUKLTExIDcyIC0yMyAxMDUgLTI3IDY3IC03IDI1MCAtNDAgMzA3IC01NSAyMSAtNSAzNyAtMTYgMzcgLTI0IDAgLTIyIC01NCAtNDUKLTEwNSAtNDUgLTYwIDAgLTIwOCAtMTYgLTM2NSAtNDAgLTE4NiAtMjggLTU0NCAtNDQgLTcxNSAtMzEgLTc3IDYgLTE4MCAxMQotMjMwIDExIC00OSAxIC0xMjYgNyAtMTcwIDE1IC00NCA4IC0xNTYgMjIgLTI1MCAzMCAtOTMgOCAtMTkwIDIyIC0yMTUgMjkKLTI1IDggLTkyIDIyIC0xNTAgMzEgLTU4IDkgLTEyMyAyMCAtMTQ1IDI1IC05OCAyMyAtMjE2IDUzIC0yODAgNzEgLTM4IDEyCi0xMDkgMjkgLTE1NyA0MCAtNDcgMTAgLTEyMCAzMiAtMTYxIDQ5IC00MiAxNiAtODIgMzAgLTkwIDMwIC05IDAgLTUxIDE0IC05NAozMiAtNzYgMzEgLTg0IDMyIC0yNjYgMzcgLTE3MiA2IC0xOTAgOCAtMjAzIDI2IC0xMiAxNiAtMTQgMjY0IC0xMiAxNzc1IDIKOTY1IDcgMTc2MSAxMSAxNzY4IDE0IDIxIDI5IDkgNDQgLTMyeiBtLTkwMiAtMTMzIGM0IC0yMSA3IC03ODcgNiAtMTcwMyAtMgotMTQzNCAtNCAtMTY2NyAtMTYgLTE2ODAgLTEyIC0xMSAtNTEgLTE1IC0xODIgLTE2IC0xNzQgLTMgLTIyOSAtMTAgLTMwNSAtNDMKLTI1IC0xMCAtODAgLTI3IC0xMjQgLTM2IC00MyAtMTAgLTkwIC0yMyAtMTA0IC0zMCAtMTQgLTcgLTYxIC0yMiAtMTA1IC0zMwotNDQgLTExIC0xMTQgLTMwIC0xNTUgLTQxIC00MSAtMTEgLTExMyAtMjYgLTE2MCAtMzIgLTQ3IC02IC0xMDcgLTIwIC0xMzMKLTMwIC0yNyAtMTEgLTkwIC0yNCAtMTQwIC0yOSAtMTQ3IC0xNSAtMjE5IC0yNyAtMjU3IC00MyAtMTkgLTggLTEwMiAtMjAKLTE4NSAtMjcgLTgyIC02IC0xODEgLTE4IC0yMTkgLTI2IC0yNjIgLTU1IC0xMDQ3IC01NyAtMTI5NiAtNCAtNDcgMTAgLTEyNQoyMiAtMTc1IDI2IC00OSAzIC0xMzkgMTkgLTIwMCAzNCAtNjAgMTUgLTEyOCAzMSAtMTUwIDM0IC02MiAxMSAtNzUgMTYgLTc1CjMyIDAgMjcgNDcgMzIgMjQzIDI3IDIxOCAtNyA0MTIgOCA0ODcgMzcgMjUgMTAgODggMjUgMTQwIDM1IDUyIDkgMTEwIDI1IDEzMAozNSAxOSA5IDY5IDI1IDExMCAzNCA0MSA5IDkwIDI1IDEwOCAzNiAxOCAxMSA1MyAyNSA3OCAzMCAyNSA2IDYyIDIxIDgyIDM0CjIwIDEzIDU1IDI5IDc3IDM2IDIyIDcgNDcgMTggNTUgMjUgOCA3IDQ0IDI3IDgwIDQ1IDE0MyA3MSAxNjYgODMgMTgwIDk2IDkgNwozNSAyMCA1OCAyOCAzOSAxNCA5NSA1MyAxNjIgMTE0IDE0IDEyIDI4IDIyIDMyIDIyIDMgMCAxOSAxMSAzNSAyNCAxNSAxMyA0MgozMiA2MCA0MiA1NiAzMyAxMTYgNzcgMTc4IDEzMCAzMyAyOCA3MSA1NyA4NSA2NCAyNSAxMyAxNTkgMTI1IDE5NiAxNjQgMzAgMzIKMTE2IDEwMSAxNDIgMTE1IDMyIDE3IDE2OCAxNTUgMTg2IDE4OCA4IDE2IDQ4IDYyIDg5IDEwNCAxMTQgMTE5IDIyNSAyNTMgMjQ3CjMwMSAxMSAyNCAzMSA1OCA0MyA3NiA5MSAxMzUgMTU3IDI1MyAxNTcgMjgwIDAgOCAxNSA0NyAzNCA4NiAxOSAzOSA1MSAxMTIKNzIgMTYxIDIxIDUwIDUwIDExMCA2NiAxMzQgMTUgMjUgMjggNTUgMjggNjcgMCAxMSAxMyA0NiAyOSA3NiAxNiAzMCAzMiA3NgozNiAxMDQgNCAyNyAxOCA3MiAzMCA5OSAxMyAyOCAyOSA4NSAzNSAxMjggNiA0MyAyMCA5NyAzMSAxMjEgMTAgMjMgMjcgODggMzgKMTQzIDEwIDU0IDI2IDExNSAzNCAxMzUgOCAyMCAyMiA4NiAzMSAxNDcgOSA2MiAyMSAxMjMgMjYgMTM2IDE0IDM3IDM3IDMxIDQ1Ci0xMnogbS00NzgwIC0zNTEzIGM5IC0xMCAzMyAtMjQgNTIgLTMxIDU0IC0xNyAyMjEgLTk3IDIyOCAtMTA5IDMgLTUgMzIgLTE3CjYzIC0yNiAzMSAtOCA2OSAtMjQgODQgLTM1IDE1IC0xMCA1OCAtMjYgOTYgLTM0IDM4IC04IDg1IC0yMyAxMDMgLTM0IDE5IC0xMQo1OSAtMjUgODkgLTMyIDMwIC02IDcxIC0yMiA5MiAtMzYgMjggLTE5IDU2IC0yNiAxMjUgLTMzIDkzIC05IDE2MSAtMjIgMjA5Ci00MSAxNiAtNiAxMDMgLTE3IDE5NCAtMjUgOTEgLTggMjA3IC0yMSAyNTggLTI5IDE0MSAtMjMgNzA2IC0yMiA3NzggMSA1MiAxNgo4NCAxNCA4NCAtNSAwIC02IC0xMCAtMTYgLTIyIC0yMiAtMTMgLTYgLTMzIC0yMCAtNDQgLTMxIC0yMCAtMTggLTk4IC00OQotMjQ3IC05OCAtMzIgLTExIC03NyAtMzEgLTEwMCAtNDQgLTIzIC0xMyAtNTggLTI3IC03NyAtMzEgLTE5IC00IC01NiAtMTgKLTgxIC0zMSAtMjYgLTEzIC02OCAtMjggLTk1IC0zNSAtMjcgLTcgLTc0IC0yNCAtMTA0IC0zOSAtMzAgLTE1IC03MSAtMzEgLTkwCi0zNSAtMTkgLTQgLTQ3IC0xNyAtNjIgLTI4IC0xNSAtMTEgLTQ5IC0yNyAtNzUgLTM2IC00MCAtMTMgLTUyIC0yMyAtNzAgLTYwCi0yMCAtMzkgLTY4IC04MSAtOTMgLTgxIC01IDAgLTggMjMgLTggNTAgMiA2MCAtMjUgMTA1IC02MyAxMDUgbC0yNCAwIC01Ci0yMDUgYy01IC0yMDAgLTEzIC0yNTAgLTQxIC0yNTAgLTIxIDAgLTI1IDUyIC0yNCAyNjAgMSAyMTcgLTUgMjYzIC0zNCAyNTgKLTI3IC01IC0zMiAtNzcgLTI4IC0zOTcgNSAtMzEyIDEgLTM1OCAtMjkgLTM5MCAtMTEgLTEyIC0xNiAtMTIgLTI4IC0xIC0xNAoxMSAtMTYgNjUgLTE2IDQzMiAwIDI3MCAtNCA0MjYgLTEwIDQzOSAtNiAxMCAtMTkgMTkgLTI5IDE5IC00MCAwIC00NCAtNDIKLTQ1IC00NDcgLTEgLTM1NCAtMiAtMzg3IC0xOCAtMzk3IC0xNCAtOCAtMjEgLTcgLTM1IDYgLTEzIDE0IC0xNiAzMyAtMTQgOTUKNyAxNzMgNSA2MjQgLTMgNzA2IC03IDc1IC0xMCA4NyAtMjYgODcgLTM4IDAgLTUzIC0yOSAtNDUgLTg5IDQgLTMxIDcgLTcyIDcKLTkxIC01IC0yNjggLTEwIC0zODggLTE3IC00MDMgLTUgLTEyIC0xIC00MSAxMCAtNzggMjYgLTg0IDExIC05NCAtNTAgLTM4Ci00NSA0MSAtNDcgNDYgLTQyIDg3IDQgMzUgMCA0OCAtMTkgNzIgLTIyIDI2IC0yMyAzMCAtOCAzOCAyMiAxMiAzMiAxNTQgMTUKMjAzIC05IDI3IC04IDM3IDEwIDY5IDIyIDM5IDIyIDU4IC0yIDExNiAtMTAgMjYgLTEwIDQ1IDEgMTAzIDExIDU3IDExIDczIDAKODYgLTE1IDE4IC00NiAyMCAtNTcgMyAtNCAtNyAtNiAtODMgLTQgLTE2OCA4IC00MTMgOCAtNDIwIC0xNSAtNDIwIC0xMiAwCi0zMyA5IC00NyAyMCBsLTI1IDIwIDIgMzE2IGMyIDI4OCAxIDMxOCAtMTUgMzM4IC0zNiA0NCAtNDQgMTEgLTQ5IC0yMTcgLTMKLTExNyAtOSAtMjE4IC0xMyAtMjI0IC0xNCAtMjIgLTQ2IC0xNSAtNTMgMTEgLTMgMTQgLTcgMTQzIC03IDI4OCAtMiAyNTggLTIKMjYzIC0yMyAyNjYgLTM4IDUgLTQ1IC0xOCAtNDggLTE3OCAtMyAtMTUxIC0xMCAtMTc4IC0zOSAtMTY3IC0yOCAxMSAtMzggOTEKLTMxIDI1NiA4IDE4NCA0IDIxMSAtMzEgMjExIC0zNSAwIC00NiAtMjggLTM5IC05OSA3IC01OCAtMyAtOTEgLTI3IC05MSAtNCAwCi0yNCAyNCAtNDMgNTQgLTM0IDUwIC0zNiA1OCAtMzYgMTM3IDAgNDYgLTQgODkgLTggOTUgLTQgNiAtMjYgMjMgLTQ4IDM3IC02MQozOCAtMTAwIDk4IC03NyAxMjAgMTIgMTMgNDAgNyA1OCAtMTN6IG0xMDQ2NSAtMTQgYzAgLTM2IC0zNiAtNzYgLTgyIC05MiAtMjUKLTggLTUyIC0yMSAtNTggLTI5IC03IC04IC0xMCAtNDcgLTkgLTEwMiAyIC03NiAtMSAtOTUgLTIyIC0xMzggLTEzIC0yNyAtMzAKLTUwIC0zOCAtNTAgLTIxIDAgLTMyIDUyIC0yNSAxMDggNiA1MiAtNSA3NyAtMzcgNzcgLTEwIDAgLTIwIC04IC0yMyAtMTcgLTMKLTEwIC01IC0xMDMgLTUgLTIwOCAwIC0xOTEgLTcgLTI0NSAtMzUgLTI0NSAtMjYgMCAtMzEgMjMgLTM2IDE3NCAtNCAxMjcgLTgKMTUwIC0yMiAxNjAgLTE0IDggLTIyIDcgLTM1IC03IC0xNiAtMTUgLTE3IC00MCAtMTQgLTI1OSAzIC0yNDcgLTMgLTI5OCAtMzQKLTI5OCAtMjggMCAtMzUgNDkgLTM1IDI0NCAwIDE1MiAtMyAxOTYgLTE0IDIwNSAtMTUgMTMgLTQ2IDUgLTQ3IC0xMyAwIC02IC0yCi0xNDkgLTMgLTMxOCAtNCAtMzQ3IC0zIC0zNDMgLTcyIC0zMzUgLTUxIDUgLTY1IC0xMiAtNzUgLTk1IC01IC00MyAtMTUgLTY4Ci0zOSAtOTggLTU5IC03NCAtNTggLTc4IC01OSAzNTAgMCAxMjkgMyAyNDUgNiAyNTggMTAgNDEgLTQzIDk0IC02MiA2MiAtMyAtNQotNiAtMTg5IC02IC00MDcgMCAtMzk3IC01IC00NTkgLTM2IC00ODQgLTEwIC05IC0xOCAtOCAtMzIgNSAtMTcgMTYgLTE5IDQwCi0xOSA0MTIgLTEgNDAyIC0zIDQyNCAtMzggNDI0IC03IDAgLTE4IC04IC0yMyAtMTggLTUgLTEwIC0xMSAtMTgzIC0xMyAtNDAyCi0yIC0yOTMgLTYgLTM5MCAtMTYgLTQwOCAtMTYgLTI3IC0yOCAtMjEgLTQ2IDIxIC0xMCAyNSAtMTIgMTAyIC05IDM1MiAzIDMyMgotMSAzNzUgLTMyIDM3NSAtMjMgMCAtMjcgLTMzIC0yNSAtMjcxIDEgLTIwMSAtMiAtMjM4IC0xNSAtMjQ5IC0yMiAtMTggLTQwIDAKLTY1IDY2IC0xNCAzOCAtMjAgNzkgLTIwIDEzNSAwIDc5IDAgNzkgLTI0IDczIC0yOCAtNyAtMTEwIDUwIC0xMzcgOTYgLTIwIDMyCi01NyA2MCAtNzkgNjAgLTkgMCAtNDcgMTYgLTg2IDM1IC0zOCAxOSAtNzYgMzUgLTg1IDM1IC04IDAgLTM4IDExIC02NSAyNQotMjcgMTQgLTc0IDMzIC0xMDQgNDEgLTMwIDkgLTY5IDI0IC04NiAzNCAtMTcgMTAgLTU4IDI1IC05MCAzNSAtMzMgOSAtNzMgMjUKLTkwIDM2IC0zMSAxOCAtNjIgMzEgLTIxOSA4NSAtMzggMTQgLTgzIDM3IC0xMDAgNTIgLTE2IDE2IC00MyAzNCAtNTggNDAgLTUxCjIyIC0xOSAyOSA2MCAxNSA5NCAtMTcgMjA4IC0xOSAyNDYgLTQgMTYgNiA4NSAxMSAxNTMgMTEgNjkgMCAxNjcgNCAyMTcgOSA1MQo2IDE2MyAxNSAyNTAgMjEgODcgNiAxODIgMTggMjEwIDI2IDU1IDE1IDExMiAyNiAyNDIgNDUgNDQgNiA5NyAyMCAxMTcgMzAgMjEKMTEgNzEgMjYgMTEyIDM0IDQxIDcgODkgMjEgMTA2IDMwIDE3IDkgNjQgMjIgMTAzIDMwIDQwIDggOTcgMjUgMTI3IDM5IDMwIDE0CjY1IDI2IDc2IDI2IDEyIDAgNDYgMTMgNzYgMjggMjkgMTYgNzYgMzQgMTAzIDQxIDI4IDcgNTggMTkgNjcgMjggMTcgMTUgMTc4CjcwIDIxMSA3MiA5IDEgMTcgLTUgMTcgLTEzeiBtLTQ4NDcgLTU1IGM0MSAtMjUgMTg3IC0xOTUgMjE3IC0yNTEgNyAtMTQgMzYKLTUyIDY0IC04NSAyOSAtMzMgNjMgLTc2IDc4IC05NSAxNCAtMTkgNjEgLTc0IDEwNCAtMTIxIDQ0IC00NyAxMDggLTEyMSAxNDQKLTE2NCAzNiAtNDMgOTUgLTExMiAxMzEgLTE1NCAzNiAtNDIgODcgLTEwOCAxMTQgLTE0NiAyNiAtMzkgNzMgLTk5IDEwNCAtMTM1CjMxIC0zNiA4NSAtMTAzIDEyMSAtMTQ5IDM2IC00NiA4MCAtMTAwIDk4IC0xMTggMTggLTE5IDMyIC00MiAzMCAtNTEgLTIgLTkKLTI1IC0yNCAtNTIgLTM0IC0yOCAtOSAtNTQgLTI0IC01OCAtMzMgLTEyIC0yMCAtMjUgLTE5IC01NSA1IC0zMiAyNSAtNTkgMjYKLTcyIDEgLTcgLTEyIC0xMSAtMzI4IC0xMiAtOTA2IDAgLTQ4OSAtMyAtODk0IC02IC05MDEgLTUgLTE0IC00MyAtMjAgLTQzIC02CjAgNCAtMSA0MDYgLTMgODk0IGwtMiA4ODcgLTIyIDIzIGMtMjIgMjEgLTI0IDIyIC00MCA1IC0xNyAtMTcgLTE4IC03NCAtMTgKLTkzOSAwIC04MzUgLTIgLTkyMiAtMTYgLTkzMSAtOSAtNiAtMjMgLTggLTMyIC00IC0xNCA1IC0xNSAxMDQgLTE2IDkxOCAtMQo1ODYgLTUgOTE4IC0xMiA5MzAgLTUgMTEgLTE2IDE5IC0yMyAxOSAtNDEgMCAtNDAgNyAtNDEgLTk0OCAtMSAtODU4IC0zIC05MTYKLTE5IC05MjYgLTEzIC05IC0yMCAtNyAtMzEgOCAtMTMgMTcgLTE1IDE1NCAtMTUgOTIwIDEgODAzIC0xIDkwMSAtMTUgOTE1Ci0xNCAxNCAtMTggMTQgLTQzIDAgLTMyIC0xOCAtMjkgODkgLTI4IC05MDkgMCAtODk1IC0xIC05NDAgLTIxIC05NjIgLTE3IC0yMAotNDggLTI0IC01OCAtOCAtMyA1IC01IDM0NCAtNCA3NTIgMiAxMTc0IDQgMTA3NCAtMTUgMTEwMyAtMTggMjcgLTQ3IDMzIC02NQoxMiAtOCAtMTAgLTEyIC0yNzggLTEzIC05NDggbC0zIC05MzQgLTI1IDAgLTI1IDAgLTMgOTM5IGMtMiA2NjAgLTYgOTQ0IC0xNAo5NTMgLTE0IDE3IC0zMyAxNiAtNTIgLTIgLTEzIC0xMyAtMTUgLTEyOSAtMTUgLTk2MiAwIC02MTAgLTMgLTk0OSAtMTAgLTk1NgotMTggLTE4IC0zOCAxIC00NSA0NCAtNCAyMyAtNiAzODAgLTYgNzkzIDEgMTEzOCAzIDEwMzAgLTIwIDEwNTcgbC0yMCAyNCAtMjAKLTIzIGMtMTkgLTIzIC0yMCAtNDIgLTIwIC05NDkgMCAtOTUwIC0xIC05NzYgLTM3IC05NDAgLTExIDExIC0xNCAxNjkgLTE0CjkzMiAwIDU4MCAtNCA5MjUgLTEwIDkzNyAtMTQgMjYgLTQzIDIyIC04MSAtMTEgbC0zMyAtMjkgLTM1IDE5IGMtNDYgMjQgLTg3CjI0IC05OSAwIC05IC0xNyAtMTYgLTEwNjAgLTExIC0xNjUyIDEgLTE4NSAtMSAtMjE3IC0xMyAtMjIyIC05IC0zIC0yMCAwIC0yNgo3IC03IDggLTEwIDMxNSAtOSA5MzEgMSA3MDUgLTEgOTI1IC0xMSA5NDMgLTE1IDI3IC00NyAyOSAtNjEgMiAtNyAtMTMgLTEwCi0zMjMgLTEwIC05NTYgMCAtNTc3IC0zIC05NDEgLTkgLTk0NyAtNSAtNSAtMjEgLTcgLTM1IC0zIGwtMjYgNiAwIDk0NCBjMAo5MDEgLTEgOTQ1IC0xOCA5NjYgbC0xOSAyMyAtMjIgLTIyIC0yMSAtMjEgMSAtOTM3IGMyIC04NTMgMCAtOTM4IC0xNCAtOTQ3Ci0xMSAtNyAtMjAgLTcgLTI3IDAgLTggOCAtMTEgMjg2IC0xMiA5NDMgMCA4MDYgLTIgOTM0IC0xNSA5NDYgLTE5IDE5IC0yNSAxOQotNzggLTYgbC00NSAtMjEgLTM2IDMxIGMtMjAgMTggLTQzIDMxIC01MiAyOSAtNDEgLTggLTQyIC0xNCAtNDAgLTk1OCAxIC00OTgKLTIgLTkxNSAtNiAtOTI3IC04IC0yNiAtMzEgLTMwIC00MCAtNyAtMyA5IC02IDQzNiAtNiA5NDkgMCA5MDggLTEgOTMzIC0xOQo5NTYgLTE5IDIzIC0yMCAyMyAtMzggNiAtMTcgLTE3IC0xOCAtNjcgLTIzIC05NTkgLTUgLTg4OCAtNiAtOTQxIC0yMyAtOTUyCi0xNCAtOCAtMjAgLTggLTI3IDQgLTYgOSAtMTAgMzc1IC0xMCA5NTcgMCA4NDIgLTIgOTQzIC0xNiA5NTcgLTIxIDIyIC00MSAyMAotNTQgLTQgLTcgLTEzIC0xMCAtMzE0IC0xMCAtOTQ2IDEgLTkwOSAtMSAtOTU1IC0yOSAtOTU0IC0zMiAxIC0zMiA0IC0zMSA5NDQKMCA2NDAgLTMgOTMyIC0xMCA5NDYgLTEzIDI1IC03MCAyNyAtMTEwIDQgLTI2IC0xNiAtMjkgLTE2IC01OCA1IC0zNSAyNSAtNTUKMjcgLTcxIDcgLTkgLTExIC0xMyAtMjQ1IC0xNCAtOTIwIC0yIC02ODEgLTUgLTkwOCAtMTQgLTkxNyAtNiAtNiAtMTkgLTkgLTI3Ci02IC0xNCA2IC0xNiAxMDAgLTE2IDkyMiAwIDYxMyAtMyA5MjMgLTEwIDkzNiAtMTIgMjEgLTQ1IDI1IC01NyA3IC00IC03IC0xMAotNDI3IC0xMyAtOTMzIC01IC04ODYgLTYgLTkyMCAtMjQgLTkyMyAtMTAgLTIgLTIyIDAgLTI4IDYgLTUgNSAtOSAzNjIgLTgKOTI0IDAgOTA1IDAgOTE1IC0yMCA5MzkgbC0yMCAyNCAtMjAgLTI0IGMtMjAgLTIzIC0yMCAtMzggLTIwIC05MTEgMCAtNzc3IC0yCi04ODkgLTE1IC05MDAgLTEyIC0xMCAtMTggLTEwIC0zMCAwIC0xMyAxMSAtMTUgMTI0IC0xNSA5MDkgMCA5NjcgMSA5NDQgLTUwCjkxOCAtMTQgLTcgLTI5IC0yMiAtMzUgLTM1IC0xMyAtMzAgLTI4IC0yOCAtNDMgNyAtOCAxNyAtMjYgMzQgLTQ1IDQxIC03MCAyNgotNzcgMzAgLTc3IDQ2IDAgMTAgMjQgNDMgNTMgNzQgMjggMzEgNjkgNzkgOTAgMTA2IDkzIDEyMSAxMDkgMTQxIDEzNiAxNzQgMzUKNDEgMTEyIDE0MiAxNTkgMjA3IDE4IDI2IDQzIDU2IDU1IDY5IDEyIDEyIDY3IDc3IDEyMiAxNDUgNTUgNjcgMTQxIDE2NiAxOTEKMjE4IDkyIDk4IDEyOSAxNDMgMTc0IDIxMSA1MCA3NiAxMTUgMTU3IDE3NiAyMTcgbDYyIDYyIDE1MyAzIGM4NSAyIDI1OCAyCjM4NiAyIDIxOCAtMiAyMzQgLTMgMjY2IC0yM3ogbS0xMjk1IC01OCBjMiAtMTQgLTQgLTI2IC0yMCAtMzQgLTEzIC03IC05MwotODIgLTE4MCAtMTY4IC04NiAtODYgLTIwMCAtMTk2IC0yNTQgLTI0NiAtNTMgLTQ5IC0xMzQgLTEyNSAtMTc4IC0xNjcgLTEwNgotMTAxIC0xNzQgLTE1OCAtMTg5IC0xNTggLTYgMCAtOTggLTg3IC0yMDMgLTE5MiAtMTA2IC0xMDYgLTIyNyAtMjI0IC0yNjkKLTI2MyAtNjcgLTYxIC04MiAtNzAgLTExNyAtNzEgLTIzIDAgLTQ0IC03IC00OSAtMTUgLTUgLTggLTkgLTY2IC0xMCAtMTI5IC0xCi0xMjkgLTggLTE2MyAtMzEgLTE2OCAtMjYgLTUgLTM3IDUyIC0zNSAxNzggMSA2MyAtMSAxMjcgLTYgMTQzIC0xMCAzNyAtNDIKMzYgLTYyIC0zIC0xMyAtMjUgLTE1IC03MiAtMTMgLTMwMyAyIC0xNDkgLTEgLTI4NiAtNSAtMzA0IC0xMCAtMzcgLTMwIC00OAotNTIgLTI3IC0xNSAxNSAtMjAgMTgzIC0xOCA1NTQgMSAxMjQgLTEgMTMwIC01MyAxMzAgLTMxIDAgLTU1IC0xOSAtNjcgLTUyCi0xMSAtMzEgLTI0IC0yMCAtMzcgMjkgLTE4IDczIC00MSA5MSAtNzQgNTggLTEzIC0xNCAtMTUgLTk2IC0xNSAtNjg4IDEgLTM3MAotMiAtNjg0IC02IC02OTkgLTUgLTE4IC0xNCAtMjggLTI2IC0yOCAtMTAgMCAtMTkgMyAtMjAgOCAwIDQgLTMgMzIyIC00IDcwNwotMiAzODUgLTQgNzEwIC01IDcyMyAwIDEzIC0xMSAzMyAtMjUgNDYgLTQyIDM5IC0zMyA3MSAzMCAxMDUgMjIgMTEgNjUgNDEgOTUKNjYgMzAgMjQgNzYgNTYgMTAyIDcwIDI2IDEzIDQ5IDI5IDUzIDM1IDMgNSAyNSAxOSA0OCAzMCAyMyAxMSA2NSAzNSA5MyA1MwoyOCAxNyA2NSA0MSA4MyA1MiAxOCAxMSA0NyAzMCA2NSA0MiAxNyAxMiA0OSAzMiA3MSA0NCAyMiAxMiA1MiAzMSA2NyA0MyAxNQoxMSA1NyAzOSA5MyA2MSAzNyAyMiA4MSA1MiA5OCA2NiAxOCAxNSA0OCAzNCA2NyA0MyAxOSA5IDYyIDM0IDk1IDU2IDMzIDIyCjg5IDU2IDEyNSA3NSA4MyA0NiAxMzQgNzkgMjA4IDEzNyA1NCA0MSA2OSA0OCAxMzUgNTcgNDAgNiA5OCAyMSAxMjcgMzUgMjkKMTQgODMgMjggMTE5IDMyIDQyIDQgODYgMTcgMTIxIDM1IDY3IDM1IDEyMyAzNiAxMjggMnogbTE4NjUgLTQgYzMyIC0xNiA4NgotMzUgMTIwIC00MSAzNCAtNiA3OCAtMTkgOTggLTI5IDIwIC0xMCA3NiAtMjUgMTI1IC0zNCA5OCAtMTkgMjE2IC02NCAyNTIKLTk3IDI4IC0yNyA4MiAtNjEgMTQ5IC05MyAyOSAtMTMgODAgLTQ0IDExMyAtNjcgNTggLTQxIDExNiAtNzggMTkwIC0xMjMgMTgKLTExIDQ1IC0zMCA2MCAtNDMgMTYgLTEyIDQ1IC0yOSA2NiAtMzggMjEgLTkgNTQgLTI5IDczIC00NSAyMCAtMTYgMzkgLTI5IDQ0Ci0yOSA1IDAgNjYgLTM4IDEzNSAtODQgNzAgLTQ2IDE0NyAtOTQgMTcyIC0xMDYgMjUgLTEzIDU4IC0zMyA3MyAtNDYgMTYgLTEzCjM0IC0yNCA0MiAtMjQgMTMgMCA3NiAtNDYgMTI3IC05MyAxNyAtMTUgNDggLTM3IDY5IC00OCAyMSAtMTAgNDYgLTMwIDU0IC00Mwo5IC0xMyAyNyAtMjcgNDAgLTMwIDE4IC01IDI3IC0xNyAzNSAtNDUgNyAtMjYgOSAtMjc3IDggLTc0MSAtMyAtNjY2IC00IC03MDMKLTIxIC03MTQgLTE0IC05IC0yMSAtNyAtMzIgOCAtMTEgMTUgLTEzIDEzNCAtMTAgNzE1IDQgNzI2IDQgNzQxIC0zNyA3NDkgLTM3CjcgLTQwIC0yNyAtMzkgLTQ3MSAxIC0zNTEgLTEgLTQ0MyAtMTMgLTQ4OCAtOCAtMzEgLTEzIC02NCAtMTEgLTc1IDkgLTM4IDExCi0zNjQgMyAtMzc2IC0xNSAtMjIgLTM4IDIxIC0zOCA3MSAwIDI1IDUgMTE2IDEwIDIwMSA2IDk5IDYgMTY4IDAgMTg5IC01IDE4Ci0xMCAyMjUgLTExIDQ1OSAtMSAyNzMgLTUgNDMyIC0xMSA0NDAgLTE0IDE2IC00MyAxNSAtNTcgLTIgLTkgLTEwIC0xMiAtMTUzCi0xMyAtNTMwIC0xIC00ODcgLTIgLTUxNiAtMTkgLTUxNiAtMzUgMCAtMzkgNTAgLTM4IDUwNSAwIDI0MiAwIDQ0NSAwIDQ1MiAtMgoyMyAtMzMgNDMgLTY2IDQzIC01NyAwIC01OSAtMTEgLTUyIC0zMjAgNiAtMjg3IDAgLTM0MSAtMzUgLTM0OCAtMzQgLTYgLTQxCjY0IC0zMyAzMzQgNiAyMjIgNSAyNTUgLTkgMjgyIC0xOCAzNCAtMzcgNDAgLTU1IDE5IC02IC04IC0xMiAtNzAgLTE1IC0xNDgKLTQgLTEzOSAtOSAtMTY5IC0zMCAtMTY5IC0yNSAwIC0zNiA1MiAtMzYgMTY1IDAgNzUgLTQgMTE2IC0xMiAxMjEgLTYgNCAtMzAKNiAtNTMgNiAtNDEgLTIgLTQ2IDIgLTE0OCAxMDAgLTU4IDU3IC0xMzYgMTMzIC0xNzQgMTY5IC0zNyAzNiAtOTMgOTIgLTEyMwoxMjMgLTMwIDMxIC02OCA2NCAtODUgNzMgLTE2IDkgLTU3IDQzIC05MCA3NyAtMzMgMzMgLTg1IDgxIC0xMTUgMTA3IC0zMCAyNQotOTQgODQgLTE0MSAxMzAgLTQ3IDQ2IC0xNjQgMTU4IC0yNTggMjQ5IC05NSA5MSAtMTc5IDE3NyAtMTg3IDE5MyAtOSAxNiAtMzEKMzQgLTU0IDQzIC00MyAxNyAtNTEgMzcgLTIyIDUzIDIzIDE0IDIwIDE1IDg1IC0yMHogbS0zOTM1IC0xODYzIGMzIC02NjYgMQotNzM0IC0xMyAtNzQ2IC0xMiAtMTAgLTIxIC0xMSAtMzIgLTQgLTE0IDkgLTE2IDg5IC0xNyA3MzggLTEgNjk3IDAgNzI4IDE3Cjc0MSAxMSA4IDI0IDEyIDMwIDkgOSAtMyAxMyAtMTk1IDE1IC03Mzh6IG0yNTYgNDk5IGM5IC0zNSA2IC0yMzggLTQgLTI1MCAtNAotNSAtNCAtNDEgMSAtODAgNCAtMzggOCAtMTY4IDEwIC0yODggMSAtMjExIC0zIC0yNDkgLTI5IC0yMzMgLTkgNiAtMTUgODI0Ci01IDg1OSA2IDI1IDIwIDIxIDI3IC04eiBtNDIwNiAtMTg1IGMwIC01IC00IC0xMCAtMTAgLTEwIC01IDAgLTEwIDUgLTEwIDEwCjAgNiA1IDEwIDEwIDEwIDYgMCAxMCAtNCAxMCAtMTB6IG0tMjQwNCAtMTI4IGMyIC02NCAtMiAtMTM1IC03IC0xNTYgLTcgLTI3Ci03IC00MSAwIC00NSAxMSAtNyAxNSAtMTI0NyA0IC0xMzA4IC02IC0zNiAtMTcgLTQyIC0yNyAtMTYgLTQgMTAgLTYgMzA4IC01CjY2MyAxIDM1NSAxIDcwNiAtMSA3ODAgLTEgNzQgLTIgMTQ1IC0yIDE1OCAwIDIzIDIxIDU2IDMwIDQ3IDMgLTMgNyAtNTggOAotMTIzeiBtNDA0NCA3NCBjNSAtMTMgMTAgLTIxNCAxMSAtNDQ1IDIgLTQzMyAwIC00NjEgLTM2IC00MzEgLTEzIDExIC0xNSA2NwotMTUgNDQwIDAgMjM2IDMgNDM1IDYgNDQ0IDkgMjMgMjMgMjAgMzQgLTh6IG0tNjI1NSAtNDQyIGwwIC00MjkgLTIyIC0zIGMtMjkKLTQgLTM2IDIzIC0yMyA4MyA3IDMxIDggMTYzIDQgMzk1IC02IDM1MSAtMyAzOTggMjkgMzg3IDkgLTMgMTIgLTExMSAxMiAtNDMzegptNDYwOSAzMDEgYy05IC0yNCAtMzMgLTE3IC00MCAxMCAtMyAxNCAtMyA0NyAxIDczIGw4IDQ3IDE4IC01OCBjMTAgLTMxIDE2Ci02NCAxMyAtNzJ6IG0tMTc5NCA3NiBjMCAtMTAgLTYgLTI0IC0xNCAtMzAgLTE5IC0xNiAtMzAgMTMgLTE1IDQwIDEyIDIzIDI5CjE2IDI5IC0xMHogbS0xMTc0IC02OSBjLTEyIC0xMiAtMTggOCAtMTAgMzUgbDggMjggNCAtMjggYzIgLTE2IDEgLTMxIC0yIC0zNXoKbTE4MTMgLTY4IGMxIC00MyAtMTYgLTEwNCAtMjggLTEwNCAtMTMgMCAtMzEgNDkgLTMxIDgxIDAgMTYgMTAgNDkgMjIgNzIgMjEKNDEgMjIgNDEgMjkgMTcgNCAtMTQgNyAtNDMgOCAtNjZ6IG0xMTQxIC0xMzIgYy0xIC0yOSAtMyAtMzMgLTEwIC0yMCAtMTEgMTkKLTEwIDY5IDIgNjIgNCAtMyA4IC0yMiA4IC00MnogbS0xNzkwIDggYzAgLTE2IC00IC0zMCAtMTAgLTMwIC01IDAgLTEwIDE0Ci0xMCAzMCAwIDE3IDUgMzAgMTAgMzAgNiAwIDEwIC0xMyAxMCAtMzB6IG02NDEgLTczNiBjNCAtNDA0IDMgLTcwOSAtMiAtNzIyCi01IC0xMyAtMTUgLTIyIC0yMiAtMTkgLTkgMyAtMTMgMTU0IC0xNSA2OTMgLTIgMzc5IDAgNzA0IDMgNzIyIDQgMTkgMTEgMzIKMTggMjkgOSAtMyAxNCAtMTc1IDE4IC03MDN6IG0tMzU4MyA1MzkgYzIgLTI4IC0zIC00NiAtMTcgLTY0IGwtMjAgLTI0IC0xIDYxCmMwIDMzIDMgNjQgNyA2OCAxNSAxNSAyOCAtMyAzMSAtNDF6IG02NTQ1IC0xNjIgYzEgLTUyIC0zIC02NiAtMTggLTc3IC0xNwotMTMgLTIwIC0xMiAtMjggOCAtNCAxMiAtNSA0NyAtMSA3OCA0IDMwIDggNzEgMTAgOTAgMiA0OSA0IDUwIDIxIDUgOCAtMjIgMTUKLTY5IDE2IC0xMDR6IG0tNjU1OSAxMyBjOSAtMjMgNyAtNzIgLTMgLTc4IC0yMCAtMTMgLTQyIDQwIC0zMCA3MiAxMCAyNiAyNAoyOSAzMyA2eiBtNDc1NiAtNTIzIGMwIC0xMTkgLTE3IC0xNDUgLTIyIC0zNCAtNCA5MCAxIDEzMyAxMyAxMzMgNSAwIDkgLTQ1IDkKLTk5eiBtLTI5NjMgLTE3MyBjLTMgLTggLTYgLTUgLTYgNiAtMSAxMSAyIDE3IDUgMTMgMyAtMyA0IC0xMiAxIC0xOXogbTI5NjcKLTE0OCBjMTQgLTIyIDI2IC00NiAyNiAtNTQgMCAtMTUgLTQwIC00OSAtNDggLTQyIC00IDQgLTEwIDEzNiAtNyAxMzYgMSAwIDE0Ci0xOCAyOSAtNDB6IG0tMjk1NCAtNiBjMCAtMTQgLTcgLTMyIC0xNSAtNDAgLTEzIC0xNCAtMTUgLTEzIC0xNSA5IDAgMzIgOSA1NwoyMSA1NyA1IDAgOSAtMTIgOSAtMjZ6IG0xMTUwIC0xMDEgYy05IC0yNiAtMTUgLTMyIC0yMSAtMjIgLTEzIDIwIC0xMSA2MyAzCjc3IDIwIDIwIDMxIC0xMyAxOCAtNTV6IG0tNTk0IC04OSBjNyAtNDkgLTQgLTcxIC0zMSAtNjAgLTE0IDUgLTE1IDE0IC0xMCA0OQoxMyA3NCAzMCA3OSA0MSAxMXoiLz48cGF0aCBkPSJNMTQ2MTIgNzE0OCBjLTE3IC0xNyAtMTUgLTI1IDEwIC02NiAyMCAtMzIgMjIgLTMzIDM1IC0xNiAyNSAzNCAxMQo5NCAtMjIgOTQgLTYgMCAtMTYgLTUgLTIzIC0xMnoiLz48cGF0aCBkPSJNMTQ2MjQgNjk4NyBjLTE2IC0zMiAtMTYgLTQyIC01IC03MyAxMCAtMjggMTAgLTQyIDEgLTY1IC04IC0xOCAtOQotNDIgLTQgLTY2IDQgLTIxIDYgLTYzIDUgLTkzIC0yIC02OCAxMyAtOTggMjggLTU3IDEyIDMxIDEyIDM0MCAxIDM3MiAtNyAxOAotMTAgMTYgLTI2IC0xOHoiLz48cGF0aCBkPSJNMTQwMTYgNjgxNSBjLTIxIC0yMSAtMjEgLTY0IDAgLTcyIDIyIC04IDQ2IDI0IDQyIDU2IC00IDMxIC0yMSAzNwotNDIgMTZ6Ii8+PHBhdGggZD0iTTQ0MTUgMTQ4NjggYy0zNyAtNDAgLTg0IC05OCAtMTA1IC0xMjggLTQwIC01OSAtMTAyIC0xMzAgLTE4OCAtMjIwCi0zMCAtMzAgLTYxIC02OCAtNjkgLTg1IC0xNyAtMzMgLTQyIC02NCAtMTQ2IC0xODcgLTEwMCAtMTE4IC0xMDMgLTEyMyAtODYKLTE1NSAxNCAtMjYgNjQgLTYzIDg1IC02MyA2IDAgMzIgMTQgNTggMzEgNTcgMzggOTggMzYgMTUzIC0xMCAyMSAtMTcgNDIgLTMxCjQ4IC0zMSA2IDAgNDUgLTI4IDg3IC02MiA0MiAtMzUgMTAyIC04MyAxMzMgLTEwOCAxNzEgLTEzNSAzMTUgLTI3NSAzMTUgLTMwNgowIC05IC0xMSAtMzIgLTI1IC01MCAtNDUgLTU5IC0zMCAtMTE2IDM3IC0xMzYgbDQxIC0xMiA0MyA0OSBjMjQgMjggNDQgNTMgNDQKNTggMCA0IDQxIDUwIDkyIDEwMiA1MCA1MiAxMDEgMTEyIDExMyAxMzMgMTIgMjAgMzEgNDggNDMgNjIgNzMgODYgMTYyIDE5NAoxOTIgMjM1IDE5IDI1IDYyIDc4IDk1IDExNyAxMDYgMTI0IDEwOSAxNDQgMzMgMjEyIC04NSA3NCAtOTEgODAgLTEzMSAxMjkKLTQzIDUzIC03NyA2MSAtMTIwIDI3IC00MCAtMzIgLTQyIC02NSAtNyAtMTE4IDQ5IC03NSA1NiAtMTA5IDM0IC0xODggLTEwCi0zNyAtMjggLTc5IC0zOSAtOTMgLTEyIC0xNCAtMjggLTM4IC0zNiAtNTMgLTggLTE0IC00MCAtNDkgLTcyIC03NyAtNTAgLTQ0Ci02NCAtNTEgLTEwMSAtNTEgLTQ2IDAgLTY5IDE1IC0yMTQgMTM0IC05MCA3NSAtOTMgOTMgLTI1IDE1NSBsNDYgNDMgODkgLTcKYzEwNyAtOCAxNDggNCAxNDggNDIgMCAyMiAtNjMgOTMgLTgzIDkzIC00IDAgLTU1IDQ1IC0xMTQgMTAwIC0xMTEgMTA0IC0xNDkKMTI0IC0xOTIgMTAxIC0zMCAtMTcgLTI3IC02OCA4IC0xNDUgMjcgLTU5IDI4IC02NiAxNCAtOTMgLTggLTE3IC0yNiAtNDUgLTQyCi02MyAtMzYgLTQ0IC03OCAtNDQgLTEyOSAwIC05NyA4MiAtMTMzIDEwOSAtMTUyIDExNSAtNjAgMTkgLTE4IDExMSAxMTIgMjQ2Cmw3OCA4MSA3MyAtNiBjMzkgLTMgOTMgLTkgMTE5IC0xMiA0MSAtNSA1MCAtMyA3MiAxOSAxNyAxNyAyMyAzMiAxOSA0NiAtNiAyMgotNTEgNjUgLTk5IDkzIC0xNiAxMCAtNTggMzggLTkzIDYzIC0zNSAyNSAtNjkgNDUgLTc2IDQ1IC03IDAgLTQzIC0zMyAtODAKLTcyeiIvPjxwYXRoIGQ9Ik0xNTkzMCAxNDUwMyBjLTU4IC0yMSAtNzYgLTgyIC00MCAtMTQxIDExIC0xOCAyMCAtMzkgMjAgLTQ2IDAgLTIyCi0xMTYgLTEzMCAtMjA3IC0xOTMgLTQ2IC0zMiAtMTA3IC03NSAtMTM2IC05NiAtMjkgLTIwIC03MCAtNDkgLTkxIC02MyAtMjIKLTE1IC02OCAtNTAgLTEwNCAtNzkgLTU4IC00OCAtMTE3IC03NSAtMTY2IC03NSAtOSAwIC0zNCAxNiAtNTUgMzYgLTMzIDI5Ci00NiAzNSAtNzggMzIgLTM1IC0zIC0zOSAtNyAtNTUgLTUwIC0xNyAtNDYgLTE3IC00NyA3IC04MCAxMyAtMTggMzIgLTQ2IDQxCi02MyAxOSAtMzUgOTMgLTEzNiAxMTAgLTE1MCAyMCAtMTggNzYgLTg4IDEzNCAtMTY5IDU2IC03OCA3OSAtOTMgMTI0IC04MiA0MAoxMCA1OSAzNSA1MiA3MCAtMTYgODMgLTE4IDEwNyAtMTIgMTMwIDYgMjMgMTIwIDEyNCAyMjkgMjAzIDE3IDEyIDM0IDI4IDM4CjM0IDQgNiAyNyAyMyA1MiAzOCA0MyAyNCAxNDMgOTggMjEzIDE1NSAzNCAyOCAxMDMgNTYgMTM4IDU2IDExIDAgNDQgLTE0IDcxCi0zMCAyOCAtMTYgNjAgLTMwIDczIC0zMCAyMyAwIDgyIDU0IDgyIDc2IDAgNiAtMTUgMzAgLTMyIDU0IC0xOCAyMyAtNTcgNzcKLTg1IDExOSAtODEgMTE4IC0xMDIgMTQ0IC0xOTIgMjUxIC04MSA5NSAtOTYgMTA2IC0xMzEgOTN6Ii8+PHBhdGggZD0iTTM1NzQgMTM3OTUgYy0xOCAtMTkgLTQyIC02MSAtNTMgLTkyIC0xMiAtMzIgLTM0IC04MyAtNTAgLTExMyAtMTYKLTMwIC0zMSAtNjcgLTM1IC04MiAtMyAtMTQgLTE3IC0zOSAtMzAgLTU1IC0zMiAtMzggLTQwIC02OCAtMjUgLTk1IDM0IC02NAo4OCAtNjUgMTQ1IC0zIDIyIDI1IDQ4IDQ1IDU3IDQ1IDIxIDAgOTEgLTYyIDEyOCAtMTEzIDE1IC0yMSA4MCAtOTQgMTQ0IC0xNjEKMTA4IC0xMTUgMTY0IC0xOTEgMTQ3IC0xOTggLTE0IC03IC0xNDcgMCAtMjMyIDExIC00NyA2IC0xNDcgMTQgLTIyMyAxNyAtODEKNCAtMTQ0IDEyIC0xNTQgMTkgLTEzIDkgLTE2IDI3IC0xNCA3NyAxIDQ5IC0yIDcwIC0xNCA4MiAtMjEgMjAgLTU4IDMwIC04OQoyMiAtMjUgLTYgLTcwIC03MCAtOTYgLTEzNiAtOCAtMTkgLTI0IC00OCAtMzYgLTY1IC0xMiAtMTYgLTI3IC00OCAtMzQgLTY5Ci03IC0yMiAtMjEgLTUzIC0zMCAtNzAgLTEwIC0xNyAtMjUgLTU2IC0zNCAtODcgLTggLTMwIC0yNCAtNjMgLTM1IC03MyAtMjYKLTIzIC0zNSAtNjkgLTIxIC05NiA2IC0xMiAyOCAtMjggNDcgLTM3IDM0IC0xNCAzOCAtMTMgNjIgNiA4OSA3MiA5NiA3NCAyMjkKNzMgNjcgLTEgMTI4IC00IDEzNCAtOCAxMyAtOSAyNTEgLTI0IDQyOCAtMjkgMzQ2IC04IDQzNyAtOSA0NTUgLTIgMTMgNCAzMwozNCA1MyA4MiAzNyA4NyAzNyA5MSAtMzQgMTY3IC0yNCAyNiAtNDQgNTIgLTQ0IDU4IDAgMTMgLTExNCAxNDcgLTE5NCAyMjYKLTM0IDM0IC03OSA4MiAtMTAxIDEwOCAtMjIgMjYgLTYyIDcxIC05MCAxMDAgLTk4IDEwMyAtMjAyIDIzMiAtMjMxIDI4NyAtMTUKMjkgLTE1IDQwIC00IDEwMSAxNSA3OSA2IDExMiAtMzYgMTI4IC00MSAxNiAtNTUgMTIgLTkwIC0yNXoiLz48cGF0aCBkPSJNMTYzNjQgMTM1NzUgYy00MCAtNyAtODUgLTIwIC0xMDAgLTI5IC00OCAtMjYgLTEwNyAtNzAgLTExNSAtODYgLTQKLTggLTIwIC00MiAtMzYgLTc1IGwtMjggLTYwIDAgLTI4NyBjMCAtMjc0IC0xIC0yODggLTIxIC0zMTQgLTMxIC00MiAtNjcgLTY1Ci0xMTAgLTcxIC0zMyAtNCAtNDcgMSAtODggMjkgLTc0IDUwIC0xMDkgMTE4IC0xMTQgMjI0IC00IDcyIC0xIDkzIDIzIDE1OSAxNQo0MSA0MyA5NyA2MSAxMjMgMzkgNTMgNDMgOTMgMTQgMTIyIC0zMiAzMiAtNjEgMzMgLTEyMCA2IC0zMCAtMTQgLTYwIC0yNiAtNjYKLTI2IC02IDAgLTI0IC0xMCAtMzkgLTIyIC0xNiAtMTMgLTU0IC0zNiAtODQgLTUzIC0zOCAtMjEgLTU5IC0zOSAtNjYgLTU4Ci0xNCAtNDMgMTAgLTc4IDY1IC05NCAyNCAtNyA0NyAtMTggNTIgLTI1IDQgLTcgOCAtNDAgOCAtNzMgMCAtODcgMTggLTE4MSA0MAotMjE4IDExIC0xNyAyNSAtNDggMzAgLTY3IDE1IC01NSAxNDEgLTE4MiAyMjAgLTIyMiA2MSAtMzEgNzEgLTMzIDE3MCAtMzMKMTAzIDAgMTA3IDEgMTgxIDM5IDExOCA2MSAxNjQgMTExIDE5OSAyMjEgMTQgNDIgMTcgNDM5IDUgNDk3IC0xMCA0MiAxMyAxMzIKMzggMTU2IDEzIDEyIDM4IDIyIDYwIDI0IDMwIDIgNDMgLTQgNzMgLTMyIDUwIC00OSA2MyAtNzkgNzAgLTE2MyA5IC0xMDAgLTgKLTE3MyAtNDkgLTIxNSAtMjcgLTI4IC0zMiAtNDAgLTMxIC03OCAyIC0xMDYgODIgLTEwOSAyMjkgLTEwIDE5IDE0IDQ5IDI4IDY2CjMxIDMwIDcgNjkgNTQgNjkgODUgMCA4IC0yNCAzNyAtNTQgNjUgLTU3IDU0IC05NiAxMjYgLTk2IDE4MCAwIDQxIC0xOCA5NAotNDAgMTIwIC05IDExIC0yOCAzOSAtNDAgNjIgLTQyIDc3IC0xNzkgMTY3IC0yNjggMTc3IC0yMSAzIC02OSAtMSAtMTA4IC05eiIvPjxwYXRoIGQ9Ik0xNzAyNSAxMjU1MCBjLTE2IC00IC00NiAtMTQgLTY2IC0yMiAtMjAgLTkgLTU2IC0xOSAtODAgLTIzIC04MwotMTMgLTExMiAtNTAgLTg0IC0xMDQgMTkgLTM4IDQ3IC01MyA5MyAtNTAgODIgNCAxMDEgLTEgMTQxIC0zNyAyMyAtMjAgNDMKLTQ5IDQ3IC02NyA0IC0xOCAxNiAtNTEgMjcgLTc0IDI0IC01MCAyMCAtNTkgLTU3IC0xMDIgLTMyIC0xOCAtNzggLTMzIC0xMjQKLTQwIC00MSAtNiAtOTIgLTIxIC0xMTQgLTMyIC0yMiAtMTEgLTcyIC0yNyAtMTEwIC0zNSAtMzkgLTggLTk2IC0yNSAtMTI3Ci0zOCAtMzEgLTEzIC03NiAtMjcgLTEwMSAtMzEgLTI1IC00IC02MSAtMTQgLTgwIC0yMiAtNDUgLTE5IC0xMDUgLTE4IC0xMzYgMgotMTMgOCAtMzMgMzMgLTQ0IDU1IC0yMyA0NiAtNTMgNTcgLTEwNCA0MCAtNTQgLTE3IC02MiAtMzMgLTQyIC04MyA5IC0yMyAxNgotNTQgMTYgLTY3IDAgLTE0IDkgLTQwIDIwIC01OCAxMSAtMTggMjkgLTcwIDQwIC0xMTUgMTAgLTQ1IDI4IC0xMDIgMzggLTEyNwoxMSAtMjUgMjUgLTc2IDMyIC0xMTUgMjAgLTExMCA4MSAtMTU0IDE0MyAtMTA1IDI0IDE5IDI2IDI5IDI5IDk4IGwzIDc2IDUzCjM3IGMzMyAyMyA2OSAzOSAxMDAgNDQgMjYgNCA3NCAxNyAxMDcgMzAgMzMgMTQgOTMgMzEgMTMzIDQwIDQwIDggODYgMjIgMTAzCjMxIDE3IDggNzEgMjQgMTIxIDM1IDUwIDExIDEwMyAyNiAxMTkgMzQgNjggMzYgMTEwIDEwIDEzOSAtODEgMjUgLTgyIDI1IC04OAotMSAtMTQyIC0xNyAtMzQgLTMyIC00OSAtNjQgLTYzIC0yMyAtMTAgLTQ3IC0yNSAtNTQgLTMyIC0xOSAtMjMgLTI0IC03MyAtMTEKLTExMSAxNCAtNDQgNDYgLTU1IDk4IC0zMyAyMCA5IDU1IDIxIDc3IDI4IDIyIDcgNTQgMjIgNzAgMzQgMTcgMTMgNDAgMjYgNTIKMjkgNjEgMTkgNjYgNjAgMjIgMTg2IC0xNiA0NyAtMzYgMTEzIC00NCAxNDggLTggMzUgLTIwIDczIC0yNiA4NCAtNiAxMiAtMjIKNjQgLTM1IDExNSAtMTMgNTIgLTMxIDEwOCAtNDAgMTI1IC04IDE2IC0yMCA1NyAtMjUgOTEgLTYgMzQgLTIxIDg2IC0zNSAxMTYKLTEzIDI5IC0yOSA4MyAtMzQgMTE4IC0xMyA3OSAtNTQgMTgxIC04MiAyMDYgLTIxIDE4IC01MiAyMCAtMTAzIDd6Ii8+PHBhdGggZD0iTTI5MTMgMTIyODUgYy0zNSAtMjUgLTYzIC03OSAtNjMgLTEyMyAwIC0yMyAtMTMgLTc0IC0yOSAtMTE0IC0xNgotNDAgLTMyIC05MyAtMzYgLTExOCAtNCAtMjUgLTIwIC03NSAtMzYgLTExMiAtMzIgLTc0IC0zOCAtMTQ3IC0xNCAtMTcxIDIxCi0yMSA3MCAtMzAgOTQgLTE4IDEwIDYgMjkgMjcgNDEgNDYgMzcgNjAgMTAyIDgxIDE0OCA0OSAxMyAtOSA1OCAtMjIgMTAwIC0yOQo0MyAtOCA5OSAtMjMgMTI1IC0zNCAyNiAtMTEgNzggLTI2IDExNSAtMzIgMzcgLTYgODkgLTIyIDExNSAtMzYgMjYgLTEzIDc0Ci0yOSAxMDUgLTM0IDExMCAtMjEgMTYyIC02OSAxNjIgLTE1MCAwIC04NyA1MyAtMTI5IDExOSAtOTUgMzEgMTcgNDIgNDEgNTYKMTM2IDQgMjUgMTggNjUgMzAgOTAgMTIgMjUgMjYgNjUgMzAgODkgNCAyNCAyNSA5OCA0NiAxNjMgNDMgMTMyIDQyIDE0NiAtMTIKMTc0IC00MyAyMiAtNzAgMTIgLTExMiAtNDAgLTU5IC03MSAtMTEyIC02OSAtMzUzIDExIC01NiAxOCAtMTEwIDMzIC0xMjAgMzMKLTEwIDAgLTM5IDEwIC02NCAyMSAtMjUgMTEgLTc5IDI3IC0xMjAgMzUgLTg5IDE3IC0xNzQgNTYgLTE5NyA5MCAtMTIgMTkgLTE0CjM4IC05IDc4IDUgNDUgMyA1OCAtMTUgODAgLTI0IDMwIC03MSAzNSAtMTA2IDExeiIvPjxwYXRoIGQ9Ik0yNjY1IDExMzgxIGMtMTIgLTUgLTI2IC0xNiAtMzMgLTI0IC0xNSAtMTggLTM3IC0xNTUgLTUxIC0zMjIgLTkKLTEwNiAtOSAtMTIzIDcgLTE1NSAxMyAtMjggMjQgLTM2IDQ5IC0zOCA0NyAtNSA2NSAxMCA4MyA2NCAxMiA0MSAyMiA1MyA1OQo3MyBsNDQgMjQgMTA2IC0xNyBjNTggLTEwIDE2MCAtMjAgMjI2IC0yMyAxNTUgLTUgMTY3IC04IDE2MyAtMzUgLTIgLTE2IC0yMAotMjggLTcwIC00OCAtMzYgLTE1IC04MyAtMzYgLTEwNSAtNDcgLTE1OSAtODQgLTI4NiAtMTU2IC0zMDggLTE3MyAtNSAtNCAtMjgKLTEzIC01MCAtMjAgLTIyIC03IC01MSAtMjIgLTY1IC0zNSAtMTQgLTEyIC02MiAtNDQgLTEwOCAtNzAgLTQ2IC0yNyAtODYgLTUzCi05MCAtNTkgLTMgLTYgLTEyIC01OCAtMTggLTExNiAtNiAtNTggLTIyIC0xNjMgLTM0IC0yMzQgbC0yNCAtMTI5IDI4IC0yMwpjMzYgLTMxIDg2IC0zMiAxMTIgLTEgMTEgMTIgMzMgNDEgNDggNjQgMTggMjcgMzggNDQgNTYgNDggMjkgNiAxNjUgLTggMjI4Ci0yNCA0MSAtMTAgMTAxIC0xNiAzMDMgLTMxIDE0NiAtMTEgMjIxIC0yOCAyNjMgLTYxIDIyIC0xNyAyNiAtMjggMjYgLTY5IDAKLTQyIDQgLTUyIDI2IC02NyAzMyAtMjEgODkgLTIyIDExMCAtMSAyMCAyMCA1MiAxODEgNjUgMzMxIDEyIDEzMCA0IDE1OCAtNDUKMTc3IC0zOSAxNCAtNjMgMSAtMTAxIC01OCAtNjYgLTEwMSAtNjggLTEwMiAtMTU5IC0xMDIgLTQ0IDAgLTEwNSA2IC0xMzUgMTQKLTY1IDE3IC0yMzMgMzYgLTMwOCAzNiAtNjUgMCAtMTA2IDE1IC0xMDEgMzYgMyAxOSAyIDE4IDEwOCA2OSA0MSAyMCA5NSA1MAoxMjAgNjUgMjUgMTYgNTcgMzIgNzIgMzUgMTQgNCAzNCAxNSA0NCAyNiAxMCAxMSA0MSAyNiA3MCAzNSAyOSA4IDU4IDIyIDY1CjMxIDEyIDE0IDQ2IDM3IDE5OCAxMzUgMjUgMTUgNTEgMjggNTkgMjggOCAwIDUwIDIxIDkzIDQ2IDg5IDUzIDk0IDYxIDEwNAoxODkgNSA3MiA0IDg0IC0xNSAxMDcgLTExIDE1IC0zNSAzMSAtNTMgMzcgLTE3IDYgLTEzNiAyMCAtMjYzIDMwIC0xMjcgMTEKLTI2MCAyNyAtMjk1IDM1IC0zNSA4IC0xMjIgMTkgLTE5MyAyNiAtMTMwIDExIC0xNzggMjUgLTE5MCA1NSAtMyA5IC02IDQzIC02Cjc2IDAgNTAgLTMgNjEgLTIyIDczIC0zMSAyMCAtNjkgMjcgLTkzIDE3eiIvPjxwYXRoIGQ9Ik0xNzQyMiAxMTAyNCBjLTE3IC0xMiAtMjIgLTI1IC0yMiAtNTggMCAtOTMgLTc4IC0xMTUgLTQ4NiAtMTM4Ci0zODEgLTIxIC0zOTggLTE5IC00MzEgNjAgLTggMjAgLTIyIDQ1IC0zMSA1NSAtMTggMjEgLTcxIDIyIC05OCAzIC0yOSAtMjIKLTI0IC0xMTYgMzYgLTY4MSA1IC01NSAxNCAtMTc1IDE4IC0yNjggOCAtMTYzIDkgLTE2OCAzNCAtMTk0IDM0IC0zNCAxMTMgLTQxCjIzNyAtMjMgMTE0IDE3IDEzMyAyOSAxMjkgODMgbC0zIDQyIC04MCAzMiBjLTEwNCA0MSAtMTExIDQ2IC0xMTkgODAgLTQgMTUKLTE5IDUxIC0zMyA3OCAtMjIgNDEgLTI3IDY3IC0zMSAxNTAgLTcgMTYyIDkgMTgxIDE2OSAxOTUgNTcgNSAxMjMgMTIgMTQ2IDE2CjM4IDYgNDUgMyA3MyAtMjQgNTggLTU4IDMwIC0xNTUgLTU1IC0xOTMgLTU5IC0yNiAtNzUgLTQ0IC03NSAtODMgMCAtNTUgMTcKLTYxIDE1OSAtNTggMjEwIDUgMzA1IDI4IDMxNyA3NyA5IDM4IC0xNyA3MCAtNjkgODMgLTMyIDkgLTUyIDIyIC03MyA0OSAtMjUKMzMgLTI5IDQ3IC0yOSAxMDIgbDAgNjQgNzEgMTMgYzg5IDE1IDE5OSAxNiAyNDAgMyAzMSAtOSAzMSAtMTEgMzcgLTkyIDQgLTQ1CjcgLTEyMCA3IC0xNjUgMCAtODEgLTEgLTg1IC0zMSAtMTEzIC0xNiAtMTUgLTU1IC00MCAtODUgLTU0IC03MCAtMzMgLTkxIC02NAotNzQgLTEwNSAyNyAtNjUgODcgLTY2IDI4MCAtNyA4NSAyNiA5MyAzMyA4NiA3NiAtMTIgNzIgLTI2IDIyOSAtMzEgMzY2IC00Cjc3IC0xNiAyMTcgLTI3IDMxMCAtMTEgOTQgLTI0IDIwMSAtMjcgMjM4IC01IDUyIC0xMSA3MiAtMjYgODMgLTI1IDE5IC03NSAxOAotMTAzIC0yeiIvPjxwYXRoIGQ9Ik0xNjQ2NyA5NjI5IGMtMzQgLTI2IC00MiAtNjAgLTYxIC0yNjIgLTE1IC0xNTEgLTE1IC0xNzAgLTEgLTE5NyAxNwotMzIgNTEgLTQ2IDkxIC0zNiAxOCA1IDMxIDIwIDQ1IDUwIDIzIDUyIDkwIDExNiAxMjIgMTE2IDEyIDAgMzggLTUgNTcgLTExCjE5IC02IDY5IC0xNSAxMTAgLTIwIDQxIC00IDEwNCAtMTMgMTQwIC0xOSAzNiAtNSAxMDIgLTEwIDE0NyAtMTAgMTM4IDAgMTczCi0zNCA3OSAtNzUgLTMwIC0xMyAtNTcgLTI4IC02MCAtMzQgLTQgLTUgLTIzIC0xNSAtNDQgLTIyIC0yMCAtNiAtNTAgLTIxIC02NwotMzQgLTE2IC0xMiAtNDggLTI4IC03MCAtMzUgLTIyIC03IC01NSAtMjYgLTczIC00MSAtMTggLTE2IC0zNyAtMjkgLTQzIC0yOQotNiAwIC0yNSAtMTEgLTQyIC0yNCAtMTggLTEzIC01MCAtMzEgLTcyIC00MCAtMjIgLTEwIC00OSAtMjUgLTYwIC0zNSAtMTEKLTEwIC0zNiAtMjQgLTU2IC0zMCAtMjAgLTcgLTQ0IC0yMCAtNTQgLTMxIC0xMCAtMTEgLTMzIC0yNCAtNTEgLTMwIC0zNyAtMTIKLTE0MSAtNzIgLTE2MiAtOTMgLTEyIC0xMiAtMjYgLTc2IC0zOSAtMTczIC03IC01OCA3IC03NyA3OSAtMTA2IDUyIC0yMSA5MgotMjggMjI4IC0zNyAxNTUgLTExIDI4MCAtMjggMzk1IC01MiAyOCAtNiA2MSAtOSA3NSAtOCAzNiA1IDE2MCAtMTAgMTkzIC0yMwo0MSAtMTYgNTcgLTQ1IDU3IC0xMDUgMCAtNDAgNSAtNTggMjMgLTc5IDMwIC0zNCA3OSAtMzcgMTA5IC02IDIxIDIwIDI2IDQxCjQ4IDIwMiA1IDM2IDE0IDk3IDIwIDEzNSAxOCAxMTQgMiAxNjkgLTU0IDE4OSAtMjYgOSAtNjIgLTE3IC04NiAtNjQgLTExIC0yMQotMzYgLTUxIC01NSAtNjYgLTMxIC0yNCAtNDEgLTI2IC04OCAtMjAgLTI4IDMgLTkwIDExIC0xMzcgMTcgLTQ3IDUgLTEzNyAxMwotMjAwIDE3IC0xMDggNyAtMTE1IDggLTExOCAyOSAtMyAxOCA4IDI3IDcyIDU3IDQyIDE5IDg2IDM4IDk4IDQyIDEzIDQgMzcgMTcKNTMgMjkgMzYgMjcgMjA1IDExNSAyMjEgMTE1IDYgMCAxNyA3IDI1IDE2IDcgOCA0MCAyOSA3MyA0NCAzNCAxNiA2OCAzNCA3NgozOSA4IDYgMzUgMjAgNjAgMzEgMjUgMTEgNjQgMzcgODggNTkgMzcgMzQgNDIgNDQgNDIgODEgMCA1OCAxOSAyMTAgMzYgMjkyCjI4IDEzMSAxMyAxNzggLTU0IDE3OCAtNDAgMCAtOTcgLTQ4IC0xMTIgLTk1IC0xOCAtNTUgLTU0IC01OSAtMjQ4IC0yNSAtNjUKMTEgLTE3NSAyNSAtMjQ3IDMxIC0xNDUgMTEgLTI1NCAyNSAtMzA5IDQwIC00MyAxMiAtNjYgNDkgLTY2IDEwOCAwIDMwIC02IDQ0Ci0yMiA1NSAtMzEgMjIgLTgwIDIwIC0xMTEgLTV6Ii8+PHBhdGggZD0iTTI0NzYgOTU1NyBjLTM0IC0zNCAtMzQgLTE2IDkgLTI1NyA4IC00MSAxNiAtMTAwIDIwIC0xMzAgNyAtNjEgMjcKLTEwMCA1MSAtMTAwIDMwIDAgODEgMzEgOTMgNTYgNiAxNCAxMSAzOCAxMSA1NCAwIDQ0IDI4IDU2IDE5NSA4NSAyMzIgNDAgNTA5CjU2IDU5OSAzNiA4OSAtMjEgMTU4IC0xNDMgMTcwIC0zMDIgNiAtNjkgNCAtODEgLTIzIC0xNDAgLTMzIC03MyAtNDYgLTg3Ci0xMTYgLTEyMiAtMzggLTE5IC03MiAtMjcgLTE0MCAtMzEgLTk4IC03IC0xODMgLTE5IC0yODUgLTQxIC04OCAtMTkgLTI4NQotMjggLTMxMCAtMTUgLTEyIDYgLTI1IDMwIC0zMSA1NiAtMTcgNjggLTU3IDg4IC0xMjcgNjMgLTM4IC0xMyAtNDUgLTMxIC0zMgotNzggNSAtMjAgMTcgLTExNSAyNSAtMjExIDIzIC0yNjIgMzAgLTMxMiA0OCAtMzQ2IDQyIC04MSAxNDcgLTQ2IDE0NyA0OCAwCjI1IDggNTYgMjAgNzUgMjIgMzcgMjIgMzcgMjI1IDUzIDc3IDcgMTU0IDE2IDE3MCAyMSAyOSAxMCAxMDkgMjEgMjc1IDM4IDU5CjYgODcgMTUgMTMwIDQxIDMwIDE5IDY0IDM5IDc2IDQ2IDExIDcgNDAgNTYgNjQgMTExIGw0NCA5OCA0IDE0NSBjNSAxNzcgLTkKMzEzIC0zOCAzNzEgLTEyIDIzIC0yNyA2MSAtMzQgODQgLTE4IDU5IC04OSAxNTEgLTEzNyAxNzcgLTIyIDEzIC01NSAzMSAtNzIKNDAgLTU4IDMyIC0yNzMgMjEgLTUxNyAtMjYgLTQxIC04IC0xMzAgLTE2IC0xOTYgLTE4IC0xMzcgLTMgLTE1NyA0IC0xNjggNjYKLTggNDMgLTM1IDY2IC04NCA3MyAtMzQgNSAtNDUgMSAtNjYgLTIweiIvPjxwYXRoIGQ9Ik00MzM1IDYxNjEgYy0zMyAtNCAtNzMgLTE0IC05MCAtMjIgLTE2IC05IC00MyAtMTkgLTYwIC0yMyAtMTEwIC0yNgotMjIzIC0xNzAgLTI1NyAtMzI2IC0xOCAtODYgNTAgLTMwNSAxMDYgLTM0MCAxOCAtMTEgNDEgLTI5IDUxIC00MCAxMSAtMTIgNTUKLTM5IDEwMCAtNjEgNzggLTM3IDg1IC0zOSAxODEgLTM5IDc3IDAgMTA4IDQgMTM0IDE4IDE1NiA4MyAxOTEgMTEzIDI0MSAyMDkKMzEgNjEgMzMgNzQgMzcgMTgyIGwzIDExNiAtMzkgODAgYy00OCA5OCAtMTI1IDE3OCAtMTkyIDE5OSAtMjUgOCAtNjUgMjMgLTkwCjM1IC0yNSAxMSAtNDkgMjAgLTU1IDE5IC01IDAgLTM3IC00IC03MCAtN3oiLz48cGF0aCBkPSJNMTU3NjUgNjE2MSBjLTE2IC01IC01MCAtMTggLTc1IC0zMCAtMjUgLTExIC01MyAtMjEgLTYyIC0yMSAtOSAwCi00NSAtMjYgLTc5IC01NyAtNDYgLTQzIC03MSAtNzcgLTk3IC0xMzMgLTM0IC03MiAtMzYgLTgwIC0zNyAtMTg1IDAgLTEwNCAyCi0xMTQgMzIgLTE3OCA0MyAtOTEgMTA2IC0xNjQgMTY4IC0xOTMgMjggLTE0IDYxIC0zMSA3NSAtNDAgMTkgLTExIDUxIC0xNAoxNDEgLTEyIDExMiAzIDExNyA0IDE5MCA0MiA4NSA0NCAxNTggMTA2IDE3OCAxNTAgOCAxNyAyNCA1MSAzNiA3NiAxNSAzMSAyNAo3NCAyOSAxMzUgNiA4MCA0IDk0IC0xNSAxMzAgLTEyIDIyIC0yOCA1NyAtMzUgNzcgLTMyIDkyIC0xMjUgMTY2IC0yNjIgMjExCi05OCAzMiAtMTQ2IDM5IC0xODcgMjh6Ii8+PHBhdGggZD0iTTYzMTEgNDU4NCBjLTM1IC00NCAtMjUgLTgyIDM1IC0xNDAgNTEgLTQ4IDQzIC0xMDIgLTM3IC0yMzAgLTIzCi0zOCAtNTMgLTg5IC02NiAtMTE0IC0yMSAtNDEgLTcwIC0xMTkgLTE2NyAtMjcxIC0yMCAtMzAgLTM2IC01OSAtMzYgLTY0IDAKLTE5IC05NyAtMTU1IC0xMTUgLTE2MSAtMjcgLTEwIC02NiAtNiAtMTEyIDEwIC01NiAyMCAtOTQgMiAtMTE2IC01MyAtMjYgLTY0Ci0xNCAtODEgMTA3IC0xNDYgNTggLTMxIDEwOCAtNjEgMTEyIC02NiAzIC02IDI5IC0yMCA1NyAtMzMgMjkgLTEyIDU4IC0zMCA2NgotMzkgNyAtMTAgMTkgLTE3IDI1IC0xNyA2IDAgMzcgLTE3IDY4IC0zOCA5NyAtNjMgMTQ1IC05MiAxNTUgLTkyIDQgMCAyNSAxNAo0NiAzMSA1MCA0MiA1MCA3NiAtMiAxMzUgLTIxIDI0IC00MSA1MyAtNDQgNjMgLTcgMjYgMzUgMTQ2IDYwIDE3NCAxMSAxMiAyNgozOSAzMyA2MCAxMiAzOSA2NCA4NyA5NCA4NyAyNCAwIDc1IC0yNyAxMTMgLTYwIDE3IC0xNiA0NiAtMzEgNjQgLTM1IDE4IC00CjUwIC0xOCA2OSAtMzEgMjAgLTE0IDY1IC0yOSAxMDEgLTM1IDM1IC03IDc2IC0xOCA5MSAtMjUgMzggLTIwIDYyIC0xOCAxMzcKMTIgODkgMzUgMTYwIDEwNSAyMTMgMjA5IDM0IDY2IDQxIDkwIDQyIDE0MCAwIDUyIC01IDY5IC0zOCAxMjggLTIxIDM3IC01Mwo4MiAtNzAgMTAwIC00MiA0MSAtMTY3IDE0MyAtMjIwIDE3OSAtMjMgMTUgLTY2IDQ1IC05NiA2NyAtNTUgMzkgLTMwNCAxODEKLTMxOSAxODEgLTQgMCAtMjggMTYgLTUyIDM1IC00NyAzNiAtMTE1IDY1IC0xNTUgNjUgLTEyIDAgLTMyIC0xMiAtNDMgLTI2egptNTE2IC00MzggYzE1IC0xMiAzOCAtMjggNTEgLTM1IDEyIC02IDM0IC0zNSA0OCAtNjMgbDI2IC01MSAtMjYgLTY2IGMtNDIKLTEwNyAtNTYgLTEyNCAtMTM4IC0xNjUgbC03NCAtMzcgLTgzIDQyIGMtNDUgMjIgLTg1IDQ3IC04NyA1NCAtMTMgMzIgMTA5CjI0MiAxODkgMzI2IDIzIDI2IDYwIDI0IDk0IC01eiIvPjxwYXRoIGQ9Ik0xMjQ2NCA0MDMwIGMtMTI4IC02NiAtMTE3IC0zMiAtMTEwIC0zNTAgMTEgLTQ5MCAxOCAtNjYzIDI3IC02ODgKMTQgLTM3IDEwIC0xNjAgLTcgLTIyMyAtMTEgLTM5IC0yOCAtNzAgLTU1IC05OCAtOTkgLTEwMyAxIC0yMDcgMTMxIC0xMzcgOTQKNTAgMjI3IDExNCAyNjIgMTI1IDM4IDEyIDgyIDU1IDkzIDkwIDggMjcgLTEwIDY3IC00MCA4NyAtMTkgMTIgLTM2IDE1IC02OAoxMCAtNjMgLTExIC03OCAtOSAtMTA2IDEyIC0yNCAxOCAtMjYgMjYgLTI4IDEwMiAtMiA3OCAtMSA4NCAyNiAxMTAgMTcgMTggNTEKMzUgODcgNDUgMzIgOCA3MyAyMyA4OSAzMSAzMyAxOCAxODQgNzAgMjAwIDY5IDI1IC0xIDEwNiAtNTkgMTIwIC04NSAyMiAtNDMKMTkgLTU1IC0zMCAtMTEwIC01MSAtNTcgLTU2IC04NiAtMjIgLTEyNSAyOCAtMzMgODMgLTM2IDEyNCAtNyAxNSAxMCA0OCAyOQo3MyA0MSAyNSAxMiA1NiAyOCA3MCAzNSA1MiAzMCAxOTYgOTUgMjIyIDEwMiAxNSAzIDMyIDEyIDM4IDE5IDYgOCA0MCAyMyA3NAozNSAzNSAxMSA3NCAzMiA4NiA0NSAyNyAyOSAzMSA3OCA4IDEwMSAtMjcgMjcgLTg3IDQyIC0xMzEgMzIgLTY2IC0xNSAtMTQ3CjE5IC0yMzUgOTcgLTQwIDM1IC04MSA2OSAtOTEgNzUgLTEwIDUgLTMxIDI5IC00NyA1NCAtMTUgMjQgLTM5IDUxIC01MyA1OQotMTQgOSAtNzggNjUgLTE0MiAxMjQgLTY0IDU5IC0xNTggMTQ2IC0yMDkgMTkzIC01MiA0NyAtMTEzIDEwNCAtMTM2IDEyOCAtMzkKMzggLTQ3IDQyIC05MyA0MiAtMzkgMCAtNjcgLTkgLTEyNyAtNDB6IG0xNjEgLTQzMiBjMjUgLTE3IDQ1IC0zNSA0NSAtMzkgMAotNCAxNCAtMjIgMzIgLTQwIDQ5IC01MiA5OCAtMTE4IDk4IC0xMzIgMCAtMjkgLTMyIC01NSAtNzkgLTY3IC0yNyAtNiAtNTkKLTIyIC03MiAtMzYgLTI1IC0yNyAtNzAgLTMyIC04OCAtMTAgLTExIDE0IC0yNSAzMzEgLTE1IDM0NyAxMCAxNiAzMyA5IDc5Ci0yM3oiLz48cGF0aCBkPSJNNzU3NCAzOTEwIGMtMjggLTExIC01NCAtNDggLTU0IC03NiAwIC0xNSAyMyAtNDMgNjUgLTgyIDM3IC0zMiA2NgotNjcgNjYgLTc4IDEgLTM4IC0zMSAtMTc1IC01NSAtMjMxIC0xMyAtMzIgLTI3IC03OCAtMzEgLTEwMyAtNCAtMjUgLTIyIC03NgotNDAgLTExNSAtNjcgLTE0NSAtODUgLTE5MSAtOTUgLTIzOSAtMTMgLTU4IC03NCAtMTcxIC05NyAtMTgwIC05IC00IC00MiAtNAotNzMgMCAtNDUgNSAtNjAgMyAtNzMgLTEwIC0yNCAtMjQgLTQwIC05MSAtMjggLTExNCAxNCAtMjcgMTMxIC04MCAyMTAgLTk3CjM2IC03IDkzIC0yMyAxMjYgLTM0IDEzMCAtNDQgMjIzIC03MyAyODAgLTg4IDMzIC04IDg5IC0yNyAxMjUgLTQzIDM2IC0xNSA4NgotMzAgMTEyIC0zNCAyNiAtMyA2OSAtMTYgOTUgLTMwIDQ4IC0yNCAxNjggLTU2IDIxMCAtNTYgMzUgMCAxMDcgOTkgMTIyIDE2NQo3IDMwIDIxIDY1IDMyIDc5IDExIDE0IDIzIDQxIDI2IDYxIDUgMzAgMSAzOSAtMzAgNzAgLTU0IDU0IC05NSA0NiAtMTQ2IC0yOQotMTkgLTI3IC01MiAtNTYgLTg2IC03NSAtNDcgLTI3IC02NCAtMzEgLTEyNyAtMzEgLTU3IDEgLTg0IDYgLTEyMyAyNSAtMjcgMTQKLTU4IDI1IC02OCAyNSAtMjcgMCAtODkgMzQgLTExNyA2NSAtMzYgMzkgLTMzIDEyNyA4IDIyMSAxNiAzOCAzMyA4NiAzNiAxMDcKOSA1MSAzNyA3NyA4MSA3NyA1MSAwIDk2IC0yMiAxMzMgLTY1IDMxIC0zNCAzMyAtNDIgMjggLTg0IC05IC02NyA5IC05NiA1OQotOTYgMzMgMCA0MyA1IDYxIDMyIDEyIDE4IDI1IDU0IDI5IDgwIDQgMjYgMTUgNjMgMjUgODMgMzAgNjAgNzEgMjA5IDY0IDIzMwotMTAgMzMgLTM1IDU3IC01OSA1NyAtMjIgMCAtNTYgLTI4IC0xMDMgLTg1IC0yMiAtMjYgLTI2IC0yNyAtOTAgLTIzIC0zNyAzCi04MiAxMyAtMTAwIDIyIC0zNyAxOSAtNDAgNDAgLTE3IDEwNSA4IDIyIDE5IDY3IDI1IDEwMCA2IDMyIDI0IDg0IDQxIDExNSAyOQo1MiAzMyA1NiA2NyA1NiAyMCAwIDY0IC0xMyA5OCAtMjkgMzQgLTE2IDc1IC0zMiA5MiAtMzYgNDcgLTEwIDE0NCAtODAgMTY0Ci0xMTcgMTEgLTIxIDE3IC01NiAxOCAtOTMgMCAtOTMgNDUgLTEzOCAxMTUgLTExNSAzNyAxMiA1NSA0NSA1NSA5OSAwIDM2IDMxCjE5OCA0NSAyMzMgOSAyNCAtMjYgNTUgLTc3IDY5IC0yNCA2IC01NSAxNyAtNzAgMjUgLTE1IDggLTYxIDIxIC0xMDIgMjggLTQxCjggLTkyIDI0IC0xMTQgMzUgLTIyIDExIC03MSAyNyAtMTA5IDM1IC0zNyA4IC04NCAyMyAtMTAzIDM0IC0xOSAxMSAtNTMgMjQKLTc1IDI3IC0yMiA0IC03NiAyMCAtMTIwIDM2IC00NCAxNSAtMTAyIDMzIC0xMjggMzkgLTI3IDYgLTcwIDIyIC05NSAzNSAtNDkKMjYgLTczIDI5IC0xMDggMTV6Ii8+PHBhdGggZD0iTTExMjQwIDM1OTQgYy05NyAtMTEgLTE4NSAtMjcgLTIxMyAtMzkgLTE4IC03IC03NCAtMjAgLTEyNSAtMjkgLTUxCi05IC0xMTEgLTI1IC0xMzMgLTM2IC0yMSAtMTEgLTczIC0yNSAtMTE1IC0zMCAtMTAwIC0xMyAtMjA2IC00NSAtMjI4IC02OQotMjQgLTI3IC0yNSAtODUgLTEgLTExMSAxMyAtMTQgMzAgLTIwIDYyIC0yMCA1NCAwIDEwOCAtMjIgMTIyIC00OSA2IC0xMSAxNAotNDIgMTcgLTY4IDMgLTI2IDE3IC04MiAyOSAtMTIzIDEzIC00MSAzMyAtMTMzIDQ1IC0yMDUgMTIgLTcxIDMxIC0xNTkgNDEKLTE5NCAxMCAtMzUgMTkgLTc3IDE5IC05NCAwIC0xNyA1IC01NyAxMiAtODggMTUgLTc2IDUgLTk2IC03MSAtMTQ5IC02OCAtNDYKLTgzIC03NSAtNTcgLTExNiAzMSAtNDcgMTAzIC01NyAxNzggLTI2IDI0IDExIDg2IDI0IDEzOCAzMSA1MiA3IDEzOCAyNCAxOTAKMzggNTIgMTQgMTIyIDMxIDE1NSAzOCA4NSAxOSAxMDggNjMgNjQgMTE5IC0xNyAyMiAtMjkgMjYgLTY4IDI2IC00MiAwIC01NCA1Ci05MCAzOCAtNDAgMzUgLTQzIDQxIC01NSAxMjIgLTcgNDcgLTIwIDk5IC0yOSAxMTcgLTQ0IDg0IC0zIDEzNCA5OSAxMTggMzcKLTUgNDkgLTEzIDgxIC01NiAyMSAtMjcgNTQgLTY5IDczIC05MyAxOSAtMjQgNTMgLTY4IDc1IC05NyA1MiAtNzAgMTY3IC0xODQKMjA2IC0yMDQgMzIgLTE3IDY4IC0xMyAxODggMjAgMzAgOCA5MyAyMCAxNDAgMjYgMTIwIDE2IDE3MSA0NyAxNzEgMTA2IDAgNDQKLTM5IDcyIC0xMTMgODIgLTU4IDggLTc3IDE2IC0xMjQgNTMgLTMwIDIzIC03NCA2NCAtOTYgOTAgLTIyIDI2IC01NCA1NiAtNzEKNjYgLTE3IDEwIC01NyA0MyAtODkgNzMgLTMyIDMwIC03MiA1OSAtODkgNjUgLTU4IDE5IC01OSAzOSAtMyA5MiA5NSA5MSAxMTIKMTIwIDExNyAxOTcgNiA4MyAtNyAxODIgLTI4IDIxMCAtOCAxMSAtMjUgMzcgLTM5IDU3IC0xNSAyMiAtNTAgNTEgLTg5IDczCi01OSAzMyAtNzIgMzYgLTE2MyAzOSAtNTQgMiAtMTE0IDIgLTEzMyAweiBtLTM3IC0yMTMgYzM4IC0xNSA4NiAtNzIgOTggLTExNgo1IC0yMiAxNyAtNTUgMjUgLTcyIDE0IC0zMSAxMyAtMzcgLTE4IC0xMDkgbC0zMyAtNzcgLTc1IC0yNCBjLTExNiAtMzggLTE0MwotMTUgLTE2NyAxNDQgLTcgNTQgLTIwIDEyNCAtMjcgMTU1IC0xNiA2OCAtOCA4NiA0NCA5OCA0OSAxMSAxMjQgMTIgMTUzIDF6Ii8+PHBhdGggZD0iTTg5NjcgMzQ4OSBjLTM4IC0yMiAtNjUgLTEyOSAtNzAgLTI3NyAtMiAtNjcgMCAtNzUgMjIgLTkzIDUyIC00MwoxMDkgLTE2IDE0NyA2OSA1NCAxMjIgODIgMTM4IDIyMSAxMjYgMTIwIC0xMSAxNDIgLTQ4IDExMyAtMTkxIC0xMSAtNTYgLTI3Ci0yODAgLTQwIC01NTMgLTExIC0yMzEgLTEyIC0yMzIgLTEyMSAtMjQzIC03OSAtOSAtMTEzIC0zMSAtMTE3IC03OCAtNCAtNTEKMjggLTc2IDExOSAtOTMgODYgLTE3IDU4MiAtNDMgNjIxIC0zMyA0MiAxMSA1NyA4NCAyNiAxMjQgLTYgNyAtMjYgMTUgLTQ3IDE5Ci0xMTAgMTkgLTEyNSA3NSAtOTcgMzU5IDggNzcgMTcgMjMyIDIxIDM0NSA3IDI0MyAxMyAyNzQgNTYgMjg5IDMyIDExIDE2NiAtMQoyMTQgLTE5IDMyIC0xMiA2MCAtNTkgODUgLTE0MSAyNCAtODAgNDYgLTEwMiAxMDEgLTEwMiA2MyAwIDY5IDEzIDcxIDE3NyAzCjE4MiAyIDE5NiAtMTEgMjA5IC0xMiAxMiAtODcgMjMgLTI1MSAzNyAtNjMgNSAtMTY3IDE0IC0yMzAgMTkgLTYzIDYgLTE5MSAxMwotMjg1IDE2IC0yMDggNiAtNDMyIDI0IC00NjMgMzYgLTMwIDEyIC02MyAxMSAtODUgLTJ6Ii8+PC9nPjwvc3ZnPg==';
+    const RENDER_SCALE  = 1.5;
+    const QR_MIN_PX     = 50;
+    const QR_MAX_PX     = 180;
+    const QR_DEFAULT_PX = 80;
+    const QR_CANVAS_PX  = 150;
+    const LOGO_SIZE     = 56;
 
-        // --- Tab Switching ---
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('tab-btn')) {
-                const tabId = e.target.getAttribute('data-tab');
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                e.target.classList.add('active');
-                document.getElementById(tabId).classList.add('active');
+    // ── State ────────────────────────────────────────────────────────────────
+    let signerCount       = 1;
+    let pdfFile           = null;
+    let pdfDocObj         = null;
+    let currentPageNum    = 0;
+    let totalPages        = 0;
+    let qrPositions       = {};   // { signerIndex: { xRatio, yRatio, pageNum } }
+    let draggingQR        = null;
+    let isDragging        = false;
+    let isResizing        = false;
+    let dragOffsetX       = 0;
+    let dragOffsetY       = 0;
+    let resizeStartSize   = 0;
+    let resizeStartX      = 0;
+    let isAddingQR        = false;
+    let selectedSigner    = null;
+    let currentQrSizePx   = QR_DEFAULT_PX;
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /** Draw logo SVG centered in a white circle on an existing canvas context */
+    function drawLogoOnCanvas(ctx, logoSrc, cx, cy, size) {
+        return new Promise(resolve => {
+            const img       = new Image();
+            const centerX   = cx + size / 2;
+            const centerY   = cy + size / 2;
+            const circleR   = size / 2 + 2;
+
+            img.onload = () => {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleR, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleR - 1, 0, 2 * Math.PI);
+                ctx.clip();
+                ctx.drawImage(img, cx, cy, size, size);
+                ctx.restore();
+                resolve();
+            };
+
+            img.onerror = () => {
+                // Text fallback
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(cx - 2, cy - 2, size + 4, size + 4);
+                ctx.fillStyle = '#003087';
+                ctx.font = `bold ${size * 0.4}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('PCU', centerX, centerY);
+                resolve();
+            };
+
+            img.src = logoSrc;
+        });
+    }
+
+    /** Build a signer tab's inner HTML */
+    function signerTabHTML() {
+        return `
+            <input class="nomor" type="text" placeholder="No surat">
+            <input class="name"  type="text" placeholder="Nama">
+            <input class="id"    type="text" placeholder="NIP">
+            <div class="logo-upload-row">
+                <label class="logo-upload-label">
+                    <span>Center Logo</span>
+                    <input class="logo-upload" type="file" accept="image/*">
+                </label>
+                <span class="logo-filename">Using default PCU logo</span>
+            </div>
+            <div class="image qrcode-container"></div>
+            <button class="generate-btn">Generate QR Code</button>
+            <button class="download-svg-btn" type="button" disabled>Download SVG</button>
+        `;
+    }
+
+    /** Rebuild the signer dropdown */
+    function updateSignerSelect() {
+        const select = document.getElementById('signer-select');
+        select.innerHTML = '<option value="">-- Select Signer --</option>';
+        document.querySelectorAll('.tab-content').forEach((tab, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = tab.querySelector('.name').value || `Signer ${i + 1}`;
+            select.appendChild(opt);
+        });
+    }
+
+    /** Build a pure-SVG QR (no logo) string for download */
+    function buildQrSvg(text) {
+        const qrObj = qrcode(0, 'H');
+        qrObj.addData(text || ' ');
+        qrObj.make();
+
+        const modules   = qrObj.getModuleCount();
+        const quiet     = 4;
+        const cell      = 8;
+        const total     = (modules + quiet * 2) * cell;
+        const rects     = [];
+
+        for (let r = 0; r < modules; r++) {
+            for (let c = 0; c < modules; c++) {
+                if (!qrObj.isDark(r, c)) continue;
+                rects.push(`<rect x="${(c + quiet) * cell}" y="${(r + quiet) * cell}" width="${cell}" height="${cell}"/>`);
             }
-        });
-
-        // --- Add Signer Tab ---
-        document.querySelector('.add-tab-btn').addEventListener('click', function() {
-            signerCount++;
-            const newTabId = `signer-${signerCount}`;
-
-            const newBtn = document.createElement('button');
-            newBtn.className = 'tab-btn';
-            newBtn.setAttribute('data-tab', newTabId);
-            newBtn.textContent = `Signer ${signerCount}`;
-            this.parentNode.insertBefore(newBtn, this);
-
-            const newContent = document.createElement('div');
-            newContent.className = 'tab-content';
-            newContent.id = newTabId;
-            newContent.innerHTML = `
-                <input class="nomor" type="text" placeholder="No surat">
-                <input class="name" type="text" placeholder="Nama">
-                <input class="id" type="text" placeholder="NIP">
-                <div class="logo-upload-row">
-                    <label class="logo-upload-label"><span>Center Logo</span>
-                        <input class="logo-upload" type="file" accept="image/*">
-                    </label>
-                    <span class="logo-filename">Using default PCU logo</span>
-                </div>
-                <div class="image qrcode-container"></div>
-                <button class="generate-btn">Generate QR Code</button>
-            `;
-            document.querySelector('.qr-generator').appendChild(newContent);
-            updateSignerSelect();
-
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            newBtn.classList.add('active');
-            newContent.classList.add('active');
-        });
-
-        function updateSignerSelect() {
-            const select = document.getElementById('signer-select');
-            select.innerHTML = '<option value="">-- Select Signer --</option>';
-            document.querySelectorAll('.tab-content').forEach((tab, index) => {
-                const name = tab.querySelector('.name').value || `Signer ${index + 1}`;
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = name;
-                select.appendChild(option);
-            });
         }
 
-        // --- Logo upload: update filename label and store dataURL ---
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('logo-upload')) {
-                const file = e.target.files[0];
-                const row = e.target.closest('.logo-upload-row');
-                const label = row.querySelector('.logo-filename');
-                if (file) {
-                    label.textContent = file.name;
-                    const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        e.target.dataset.logoDataUrl = ev.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    label.textContent = 'Using default PCU logo';
-                    delete e.target.dataset.logoDataUrl;
-                }
-            }
+        return [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${total}" height="${total}" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges">`,
+            `<rect width="${total}" height="${total}" fill="#ffffff"/>`,
+            `<g fill="#000000">${rects.join('')}</g>`,
+            '</svg>'
+        ].join('');
+    }
+
+    /** Create a canvas copy of an existing canvas */
+    function cloneCanvas(src) {
+        const dst = document.createElement('canvas');
+        dst.width  = src.width;
+        dst.height = src.height;
+        Object.assign(dst.style, { width: '100%', height: '100%', objectFit: 'contain',
+                                   borderRadius: '3px', pointerEvents: 'none' });
+        dst.getContext('2d').drawImage(src, 0, 0);
+        return dst;
+    }
+
+    /** Place a draggable QR overlay on a PDF page container */
+    function addQROverlay(pageContainer, qrCanvas, signerIdx, x, y, tab, sizePx = currentQrSizePx) {
+        const overlay = document.createElement('div');
+        overlay.className = 'draggable-qr';
+        overlay.dataset.signerIndex = signerIdx;
+        overlay.style.left = `${x}px`;
+        overlay.style.top  = `${y}px`;
+        overlay.style.width = `${sizePx}px`;
+        overlay.style.height = `${sizePx}px`;
+        overlay.appendChild(cloneCanvas(qrCanvas));
+
+        const label = document.createElement('div');
+        label.className   = 'qr-label';
+        label.textContent = tab
+            ? (tab.querySelector('.name').value || tab.querySelector('.id').value || `Signer ${signerIdx + 1}`)
+            : `Signer ${signerIdx + 1}`;
+        overlay.appendChild(label);
+
+        const handle = document.createElement('div');
+        handle.className = 'qr-resize-handle';
+        overlay.appendChild(handle);
+
+        pageContainer.appendChild(overlay);
+        addDragListeners(overlay);
+    }
+
+    function redrawAllQROverlays() {
+        document.querySelectorAll('.draggable-qr').forEach(el => el.remove());
+        document.querySelectorAll('.tab-content').forEach((tab, i) => {
+            const canvas = tab.querySelector('.qrcode-container canvas');
+            const pos    = qrPositions[i];
+            if (!canvas || pos === undefined) return;
+            const pg = document.querySelector(`[data-page-num="${pos.pageNum}"]`);
+            if (!pg) return;
+            const { x, y } = ratioToPx(pos.xRatio, pos.yRatio, pg);
+            const size = pos.sizeRatio ? (pos.sizeRatio * pg.getBoundingClientRect().width) : currentQrSizePx;
+            addQROverlay(pg, canvas, i, x, y, tab, size);
+        });
+    }
+
+    function ratioToPx(xR, yR, container) {
+        const r = container.getBoundingClientRect();
+        return { x: xR * r.width, y: yR * r.height };
+    }
+
+    function pxToRatio(x, y, container) {
+        const r = container.getBoundingClientRect();
+        return { xRatio: x / r.width, yRatio: y / r.height };
+    }
+
+    function clampPos(x, y, containerRect, sizePx) {
+        return {
+            x: Math.max(0, Math.min(x, containerRect.width  - sizePx)),
+            y: Math.max(0, Math.min(y, containerRect.height - sizePx))
+        };
+    }
+
+    function clampSize(sizePx) {
+        return Math.max(QR_MIN_PX, Math.min(QR_MAX_PX, sizePx));
+    }
+
+    const qrSizeRangeEl = document.getElementById('qr-size-range');
+    const qrSizeValueEl = document.getElementById('qr-size-value');
+    qrSizeRangeEl.addEventListener('input', e => {
+        currentQrSizePx = clampSize(+e.target.value || QR_DEFAULT_PX);
+        qrSizeValueEl.textContent = `${currentQrSizePx}px`;
+    });
+
+    function setPlacingMode(active) {
+        isAddingQR = active;
+        document.body.style.cursor = active ? 'crosshair' : 'default';
+        document.getElementById('placing-indicator').classList.toggle('active', active);
+    }
+
+    // ── Tab management ───────────────────────────────────────────────────────
+
+    document.addEventListener('click', e => {
+        if (!e.target.classList.contains('tab-btn')) return;
+        const id = e.target.dataset.tab;
+        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+        e.target.classList.add('active');
+        document.getElementById(id).classList.add('active');
+    });
+
+    document.querySelector('.add-tab-btn').addEventListener('click', function () {
+        signerCount++;
+        const id  = `signer-${signerCount}`;
+        const btn = Object.assign(document.createElement('button'), {
+            className: 'tab-btn', textContent: `Signer ${signerCount}`
+        });
+        btn.dataset.tab = id;
+        this.parentNode.insertBefore(btn, this);
+
+        const content = Object.assign(document.createElement('div'), {
+            className: 'tab-content', id, innerHTML: signerTabHTML()
+        });
+        document.querySelector('.qr-generator').appendChild(content);
+        updateSignerSelect();
+
+        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        content.classList.add('active');
+    });
+
+    // ── Logo upload ──────────────────────────────────────────────────────────
+
+    document.addEventListener('change', e => {
+        if (!e.target.classList.contains('logo-upload')) return;
+        const file  = e.target.files[0];
+        const label = e.target.closest('.logo-upload-row').querySelector('.logo-filename');
+        if (file) {
+            label.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = ev => { e.target.dataset.logoDataUrl = ev.target.result; };
+            reader.readAsDataURL(file);
+        } else {
+            label.textContent = 'Using default PCU logo';
+            delete e.target.dataset.logoDataUrl;
+        }
+    });
+
+    // ── Generate QR ──────────────────────────────────────────────────────────
+
+    document.addEventListener('click', e => {
+        if (!e.target.classList.contains('generate-btn')) return;
+
+        const tab          = e.target.closest('.tab-content');
+        const nomor        = tab.querySelector('.nomor').value;
+        const name         = tab.querySelector('.name').value;
+        const id           = tab.querySelector('.id').value;
+        const container    = tab.querySelector('.qrcode-container');
+        const dlBtn        = tab.querySelector('.download-svg-btn');
+        const qrText       = `https://petra.ac.id?nomor=${encodeURIComponent(nomor)}&name=${encodeURIComponent(name)}&id=${encodeURIComponent(id)}`;
+
+        container.innerHTML = '';
+        tab.dataset.qrSvg   = buildQrSvg(qrText);
+        if (dlBtn) dlBtn.disabled = false;
+
+        new QRCode(container, {
+            text: qrText || ' ', width: QR_CANVAS_PX, height: QR_CANVAS_PX,
+            colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H
         });
 
-        // --- Generate QR with PCU logo in center ---
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('generate-btn')) {
-                const tab = e.target.closest('.tab-content');
-                const nomor = tab.querySelector('.nomor').value;
-                const name = tab.querySelector('.name').value;
-                const id = tab.querySelector('.id').value;
-                const qrContainer = tab.querySelector('.qrcode-container');
+        // Await logo draw so overlay copy is always complete
+        tab._logoReady = new Promise(resolve => {
+            setTimeout(async () => {
+                const canvas = container.querySelector('canvas');
+                if (!canvas) { resolve(); return; }
+                const ctx    = canvas.getContext('2d');
+                const cx     = (canvas.width  - LOGO_SIZE) / 2;
+                const cy     = (canvas.height - LOGO_SIZE) / 2;
+                const upload = tab.querySelector('.logo-upload');
+                const src    = (upload && upload.dataset.logoDataUrl) || PCU_LOGO_SRC;
+                await drawLogoOnCanvas(ctx, src, cx, cy, LOGO_SIZE);
+                resolve();
+            }, 150);
+        });
 
-                qrContainer.innerHTML = '';
-                const qrText = `https://petra.ac.id?nomor=${encodeURIComponent(nomor)}&name=${encodeURIComponent(name)}&id=${encodeURIComponent(id)}`;
+        updateSignerSelect();
+    });
 
-                const qr = new QRCode(qrContainer, {
-                    text: qrText || ' ',
-                    width: 150,
-                    height: 150,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.H
+    // ── Download SVG ─────────────────────────────────────────────────────────
+
+    document.addEventListener('click', e => {
+        if (!e.target.classList.contains('download-svg-btn')) return;
+        const tab = e.target.closest('.tab-content');
+        if (!tab?.dataset.qrSvg) { alert('Please generate QR code first'); return; }
+
+        const name = (tab.querySelector('.name').value || 'signer')
+            .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'signer';
+        const blob = new Blob([tab.dataset.qrSvg], { type: 'image/svg+xml' });
+        const a    = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(blob), download: `${name}-qr.svg`
+        });
+        a.click();
+        URL.revokeObjectURL(a.href);
+    });
+
+    // ── PDF rendering ─────────────────────────────────────────────────────────
+
+    document.getElementById('pdf-file').addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        pdfFile = file;
+        qrPositions  = {};
+        currentPageNum = 0;
+        await renderAllPages(URL.createObjectURL(file));
+        document.getElementById('add-qr-btn').disabled = false;
+    });
+
+    async function renderAllPages(url) {
+        try {
+            pdfDocObj  = await pdfjsLib.getDocument(url).promise;
+            totalPages = pdfDocObj.numPages;
+            const container = document.getElementById('pdf-pages-container');
+            container.innerHTML = '';
+
+            for (let n = 1; n <= totalPages; n++) {
+                const page     = await pdfDocObj.getPage(n);
+                const viewport = page.getViewport({ scale: RENDER_SCALE });
+                const canvas   = document.createElement('canvas');
+                canvas.width   = viewport.width;
+                canvas.height  = viewport.height;
+                canvas.dataset.pdfWidth  = page.getViewport({ scale: 1 }).width;
+                canvas.dataset.pdfHeight = page.getViewport({ scale: 1 }).height;
+
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+                const pg = Object.assign(document.createElement('div'), {
+                    className: 'pdf-page-item'
                 });
-
-                // After QRCode renders its canvas, overlay logo in center
-                setTimeout(() => {
-                    const qrCanvas = qrContainer.querySelector('canvas');
-                    if (!qrCanvas) return;
-
-                    const ctx = qrCanvas.getContext('2d');
-                    const logoSize = 56;  // enlarged logo
-                    const padding = 0;    // no padding/background
-                    const cx = (qrCanvas.width - logoSize) / 2;
-                    const cy = (qrCanvas.height - logoSize) / 2;
-
-                    // Determine logo source: uploaded file > PCU default
-                    const uploadInput = tab.querySelector('.logo-upload');
-                    const customDataUrl = uploadInput && uploadInput.dataset.logoDataUrl;
-                    const PCU_LOGO_DEFAULT = '../public/assets/images/pcu-logo.png';
-                    const logoSrc = customDataUrl || PCU_LOGO_DEFAULT;
-
-                    function drawLogo(src) {
-                        const logo = new Image();
-                        logo.crossOrigin = 'anonymous';
-                        logo.src = src;
-                        logo.onload = function() {
-                            // Clear the area with white (clean background, no colored box)
-                            ctx.clearRect(cx - 2, cy - 2, logoSize + 4, logoSize + 4);
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(cx - 2, cy - 2, logoSize + 4, logoSize + 4);
-                            ctx.drawImage(logo, cx, cy, logoSize, logoSize);
-                        };
-                        logo.onerror = function() {
-                            if (src !== PCU_LOGO_DEFAULT) {
-                                // If custom logo fails, try PCU default
-                                drawLogo(PCU_LOGO_DEFAULT);
-                            } else {
-                                // Final fallback: PCU text only, no background box
-                                ctx.fillStyle = '#ffffff';
-                                ctx.fillRect(cx - 2, cy - 2, logoSize + 4, logoSize + 4);
-                                ctx.fillStyle = '#003087';
-                                ctx.font = `bold ${logoSize * 0.4}px Arial`;
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText('PCU', cx + logoSize / 2, cy + logoSize / 2);
-                            }
-                        };
-                    }
-                    drawLogo(logoSrc);
-                }, 100);
-
-                updateSignerSelect();
+                pg.dataset.pageNum = n - 1;
+                pg.style.position  = 'relative';
+                pg.appendChild(canvas);
+                container.appendChild(pg);
             }
-        });
-
-        // --- Upload PDF ---
-        document.getElementById('pdf-file').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            pdfFile = file;
-            qrPositions = {};
-            currentPageNum = 0;
-
-            const fileURL = URL.createObjectURL(file);
-            await renderAllPages(fileURL);
-            document.getElementById('add-qr-btn').disabled = false;
-        });
-
-        // --- Render All Pages ---
-        async function renderAllPages(fileURL) {
-            try {
-                pdfDocObj = await pdfjsLib.getDocument(fileURL).promise;
-                totalPages = pdfDocObj.numPages;
-                const container = document.getElementById('pdf-pages-container');
-                container.innerHTML = '';
-
-                let displayPageIdx = 0; // track only visible pages
-                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                    const page = await pdfDocObj.getPage(pageNum);
-                    const baseViewport = page.getViewport({ scale: 1 });
-
-                    // Skip blank/invisible pages (height or width < 10 pts)
-                    if (baseViewport.width < 10 || baseViewport.height < 10) continue;
-
-                    const pageContainer = document.createElement('div');
-                    pageContainer.className = 'pdf-page-item';
-                    pageContainer.dataset.pageNum = displayPageIdx;
-                    pageContainer.dataset.pdfPageNum = pageNum; // real PDF page number for saving
-                    pageContainer.style.position = 'relative';
-
-                    const canvas = document.createElement('canvas');
-                    const viewport = page.getViewport({ scale: RENDER_SCALE });
-
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    canvas.dataset.pdfWidth = baseViewport.width;
-                    canvas.dataset.pdfHeight = baseViewport.height;
-
-                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-                    pageContainer.appendChild(canvas);
-                    container.appendChild(pageContainer);
-                    displayPageIdx++;
-                }
-                totalPages = displayPageIdx; // update to actual visible page count
-
-                // Re-draw any existing QR overlays
-                redrawAllQROverlays();
-                updatePageInfo();
-            } catch (err) {
-                console.error('PDF load error:', err);
-                alert('Error loading PDF: ' + err.message);
-            }
+            redrawAllQROverlays();
+            updatePageInfo();
+        } catch (err) {
+            console.error('PDF load error:', err);
+            alert('Error loading PDF: ' + err.message);
         }
+    }
 
-        // --- Redraw all QR overlays ---
-        function redrawAllQROverlays() {
-            document.querySelectorAll('.draggable-qr').forEach(el => el.remove());
+    // ── QR Placement ─────────────────────────────────────────────────────────
 
-            document.querySelectorAll('.tab-content').forEach((tab, index) => {
-                const qrCanvas = tab.querySelector('.qrcode-container canvas');
-                if (qrCanvas && qrPositions[index] !== undefined) {
-                    const pos = qrPositions[index];
-                    const pageContainer = document.querySelector(`[data-page-num="${pos.pageNum}"]`);
-                    if (pageContainer) {
-                        const { x, y } = ratioToDisplayPx(pos.xRatio, pos.yRatio, pageContainer);
-                        addQROverlay(pageContainer, qrCanvas, index, x, y, tab);
-                    }
-                }
-            });
-        }
+    document.getElementById('add-qr-btn').addEventListener('click', () => {
+        const idx = document.getElementById('signer-select').value;
+        if (idx === '') { alert('Please select a signer'); return; }
+        const tab = document.getElementById(`signer-${+idx + 1}`);
+        if (!tab.querySelector('.qrcode-container canvas')) { alert('Please generate QR code first'); return; }
+        selectedSigner = +idx;
+        setPlacingMode(true);
+    });
 
-        // --- Add QR overlay div to a page container ---
-        // x, y are CSS display pixels (left/top of overlay within pageContainer)
-        function addQROverlay(pageContainer, qrCanvas, signerIndex, x, y, tab) {
-            const qrOverlay = document.createElement('div');
-            qrOverlay.className = 'draggable-qr';
-            qrOverlay.dataset.signerIndex = signerIndex;
-            qrOverlay.style.left = x + 'px';
-            qrOverlay.style.top = y + 'px';
+    async function placeQrAtPointer(e) {
+        if (!isAddingQR) return;
+        const pg = e.target.closest('.pdf-page-item');
+        if (!pg) return;
 
-            const img = document.createElement('img');
-            img.src = qrCanvas.toDataURL();
-            qrOverlay.appendChild(img);
+        const rect        = pg.getBoundingClientRect();
+        const { x, y }   = clampPos(e.clientX - rect.left - currentQrSizePx / 2,
+                                     e.clientY - rect.top  - currentQrSizePx / 2,
+                                     rect, currentQrSizePx);
+        const pageNum     = +pg.dataset.pageNum;
+        const { xRatio, yRatio } = pxToRatio(x, y, pg);
 
-            const label = document.createElement('div');
-            label.className = 'qr-label';
-            label.textContent = tab ? (tab.querySelector('.name').value || `Signer ${signerIndex + 1}`) : `Signer ${signerIndex + 1}`;
-            qrOverlay.appendChild(label);
+        qrPositions[selectedSigner] = {
+            xRatio,
+            yRatio,
+            pageNum,
+            sizeRatio: currentQrSizePx / rect.width
+        };
 
-            pageContainer.appendChild(qrOverlay);
-            addDragListeners(qrOverlay);
-        }
+        const tab = document.getElementById(`signer-${selectedSigner + 1}`);
+        if (tab._logoReady) await tab._logoReady;
 
-        // Convert stored ratio position → CSS display pixels for overlay placement
-        function ratioToDisplayPx(xRatio, yRatio, pageContainer) {
-            const rect = pageContainer.getBoundingClientRect();
-            return {
-                x: xRatio * rect.width,
-                y: yRatio * rect.height
-            };
-        }
+        const canvas = tab.querySelector('.qrcode-container canvas');
+        document.querySelectorAll(`.draggable-qr[data-signer-index="${selectedSigner}"]`).forEach(el => el.remove());
+        addQROverlay(pg, canvas, selectedSigner, x, y, tab, currentQrSizePx);
 
-        // Convert CSS display pixel position → ratio
-        function displayPxToRatio(x, y, pageContainer) {
-            const rect = pageContainer.getBoundingClientRect();
-            return {
-                xRatio: x / rect.width,
-                yRatio: y / rect.height
-            };
-        }
+        selectedSigner = null;
+        setPlacingMode(false);
+    }
 
-        // --- Place QR: enter placing mode ---
-        document.getElementById('add-qr-btn').addEventListener('click', function() {
-            const select = document.getElementById('signer-select');
-            const signerIndex = select.value;
+    document.getElementById('pdf-pages-container').addEventListener('pointerdown', placeQrAtPointer);
+    document.getElementById('pdf-pages-container').addEventListener('click',       placeQrAtPointer);
 
-            if (signerIndex === '') { alert('Please select a signer'); return; }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && isAddingQR) { selectedSigner = null; setPlacingMode(false); }
+    });
 
-            const tab = document.getElementById(`signer-${parseInt(signerIndex) + 1}`);
-            const qrCanvas = tab.querySelector('.qrcode-container canvas');
-            if (!qrCanvas) { alert('Please generate QR code first'); return; }
+    // ── Drag & Drop ───────────────────────────────────────────────────────────
 
-            isAddingQR = true;
-            selectedSignerIndex = parseInt(signerIndex);
-            document.body.style.cursor = 'crosshair';
-            document.getElementById('placing-indicator').classList.add('active');
-        });
-
-        // --- Click on page to place QR ---
-        document.getElementById('pdf-pages-container').addEventListener('click', function(e) {
-            if (!isAddingQR) return;
-
-            const pageContainer = e.target.closest('.pdf-page-item');
-            if (!pageContainer) return;
-
-            const rect = pageContainer.getBoundingClientRect();
-            // Center QR on click point, in CSS display pixels
-            let x = e.clientX - rect.left - QR_DISPLAY_PX / 2;
-            let y = e.clientY - rect.top - QR_DISPLAY_PX / 2;
-
-            // Clamp so QR stays within page bounds
-            x = Math.max(0, Math.min(x, rect.width - QR_DISPLAY_PX));
-            y = Math.max(0, Math.min(y, rect.height - QR_DISPLAY_PX));
-
-            const pageNum = parseInt(pageContainer.dataset.pageNum);
-
-            // Store as ratio of display container
-            const { xRatio, yRatio } = displayPxToRatio(x, y, pageContainer);
-            qrPositions[selectedSignerIndex] = { xRatio, yRatio, pageNum };
-
-            const tab = document.getElementById(`signer-${selectedSignerIndex + 1}`);
-            const qrCanvas = tab.querySelector('.qrcode-container canvas');
-
-            document.querySelectorAll(`.draggable-qr[data-signer-index="${selectedSignerIndex}"]`).forEach(el => el.remove());
-            addQROverlay(pageContainer, qrCanvas, selectedSignerIndex, x, y, tab);
-
-            isAddingQR = false;
-            selectedSignerIndex = null;
-            document.body.style.cursor = 'default';
-            document.getElementById('placing-indicator').classList.remove('active');
-        });
-
-        // Cancel placing mode on Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && isAddingQR) {
-                isAddingQR = false;
-                selectedSignerIndex = null;
-                document.body.style.cursor = 'default';
-                document.getElementById('placing-indicator').classList.remove('active');
-            }
-        });
-
-        // --- Drag listeners ---
-        function addDragListeners(element) {
-            element.addEventListener('mousedown', function(e) {
-                if (isAddingQR) return;
-                isDragging = true;
-                draggingQR = this;
-                dragOffsetX = e.clientX - this.getBoundingClientRect().left;
-                dragOffsetY = e.clientY - this.getBoundingClientRect().top;
-                this.style.zIndex = '1000';
-                this.style.transition = 'none';
+    function addDragListeners(el) {
+        el.addEventListener('mousedown', e => {
+            if (isAddingQR) return;
+            if (e.target.classList.contains('qr-resize-handle')) {
+                isResizing      = true;
+                draggingQR      = el;
+                resizeStartSize = el.getBoundingClientRect().width;
+                resizeStartX    = e.clientX;
                 e.preventDefault();
                 e.stopPropagation();
-            });
-        }
-
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging || !draggingQR) return;
-            const pageContainer = draggingQR.closest('.pdf-page-item');
-            if (!pageContainer) return;
-
-            const rect = pageContainer.getBoundingClientRect();
-            let x = e.clientX - rect.left - dragOffsetX;
-            let y = e.clientY - rect.top - dragOffsetY;
-
-            // Clamp within page display bounds
-            x = Math.max(0, Math.min(x, rect.width - QR_DISPLAY_PX));
-            y = Math.max(0, Math.min(y, rect.height - QR_DISPLAY_PX));
-
-            draggingQR.style.left = x + 'px';
-            draggingQR.style.top = y + 'px';
+                return;
+            }
+            isDragging  = true;
+            draggingQR  = el;
+            dragOffsetX = e.clientX - el.getBoundingClientRect().left;
+            dragOffsetY = e.clientY - el.getBoundingClientRect().top;
+            el.style.zIndex     = '1000';
+            el.style.transition = 'none';
+            e.preventDefault();
+            e.stopPropagation();
         });
+    }
 
-        document.addEventListener('mouseup', function() {
-            if (!isDragging || !draggingQR) return;
-
-            const signerIndex = parseInt(draggingQR.dataset.signerIndex);
+    document.addEventListener('mousemove', e => {
+        if (isResizing && draggingQR) {
+            const pg = draggingQR.closest('.pdf-page-item');
+            if (!pg) return;
+            const rect = pg.getBoundingClientRect();
+            const proposed = clampSize(resizeStartSize + (e.clientX - resizeStartX));
             const x = parseFloat(draggingQR.style.left);
             const y = parseFloat(draggingQR.style.top);
-            const pageContainer = draggingQR.closest('.pdf-page-item');
-            const pageNum = parseInt(pageContainer.dataset.pageNum);
-
-            // Store as ratio
-            const { xRatio, yRatio } = displayPxToRatio(x, y, pageContainer);
-            qrPositions[signerIndex] = { xRatio, yRatio, pageNum };
-
-            draggingQR.style.zIndex = '';
-            draggingQR.style.transition = '';
-            isDragging = false;
-            draggingQR = null;
-        });
-
-        // --- Page Navigation ---
-        document.getElementById('prev-page-btn').addEventListener('click', function() {
-            if (currentPageNum > 0) { currentPageNum--; updatePageInfo(); scrollToPage(); }
-        });
-        document.getElementById('next-page-btn').addEventListener('click', function() {
-            if (currentPageNum < totalPages - 1) { currentPageNum++; updatePageInfo(); scrollToPage(); }
-        });
-        function updatePageInfo() {
-            document.getElementById('page-info').textContent = `Page ${currentPageNum + 1} of ${totalPages}`;
-        }
-        function scrollToPage() {
-            const pg = document.querySelector(`[data-page-num="${currentPageNum}"]`);
-            if (pg) pg.scrollIntoView({ behavior: 'smooth' });
+            const clamped = clampPos(x, y, rect, proposed);
+            draggingQR.style.width = `${proposed}px`;
+            draggingQR.style.height = `${proposed}px`;
+            draggingQR.style.left = `${clamped.x}px`;
+            draggingQR.style.top = `${clamped.y}px`;
+            return;
         }
 
-        // --- Reset ---
-        document.getElementById('reset-positions-btn').addEventListener('click', function() {
-            if (confirm('Are you sure you want to reset all QR positions?')) {
-                qrPositions = {};
-                document.querySelectorAll('.draggable-qr').forEach(el => el.remove());
-            }
-        });
+        if (!isDragging || !draggingQR) return;
+        const pg   = draggingQR.closest('.pdf-page-item');
+        if (!pg) return;
+        const rect = pg.getBoundingClientRect();
+        const size = parseFloat(draggingQR.style.width) || currentQrSizePx;
+        const { x, y } = clampPos(e.clientX - rect.left - dragOffsetX,
+                                   e.clientY - rect.top  - dragOffsetY,
+                                   rect, size);
+        draggingQR.style.left = `${x}px`;
+        draggingQR.style.top  = `${y}px`;
+    });
 
-        // --- Save PDF with embedded QR codes ---
-        document.getElementById('embed-qr-btn').addEventListener('click', async function() {
+    document.addEventListener('mouseup', () => {
+        if ((!isDragging && !isResizing) || !draggingQR) return;
+        const idx = +draggingQR.dataset.signerIndex;
+        const pg  = draggingQR.closest('.pdf-page-item');
+        const pgRect = pg.getBoundingClientRect();
+        const sizePx = parseFloat(draggingQR.style.width) || currentQrSizePx;
+        qrPositions[idx] = {
+            ...pxToRatio(+draggingQR.style.left.replace('px',''),
+                         +draggingQR.style.top.replace('px',''), pg),
+            pageNum: +pg.dataset.pageNum,
+            sizeRatio: sizePx / pgRect.width
+        };
+        currentQrSizePx = clampSize(sizePx);
+        qrSizeRangeEl.value = String(currentQrSizePx);
+        qrSizeValueEl.textContent = `${currentQrSizePx}px`;
+        draggingQR.style.zIndex = draggingQR.style.transition = '';
+        isDragging = false;
+        isResizing = false;
+        draggingQR = null;
+    });
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    document.getElementById('prev-page-btn').addEventListener('click', () => {
+        if (currentPageNum > 0) { currentPageNum--; updatePageInfo(); scrollToPage(); }
+    });
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+        if (currentPageNum < totalPages - 1) { currentPageNum++; updatePageInfo(); scrollToPage(); }
+    });
+    function updatePageInfo() {
+        document.getElementById('page-info').textContent = `Page ${currentPageNum + 1} of ${totalPages}`;
+    }
+    function scrollToPage() {
+        document.querySelector(`[data-page-num="${currentPageNum}"]`)?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ── Reset ─────────────────────────────────────────────────────────────────
+
+    document.getElementById('reset-positions-btn').addEventListener('click', () => {
+        if (!confirm('Reset all QR positions?')) return;
+        qrPositions = {};
+        document.querySelectorAll('.draggable-qr').forEach(el => el.remove());
+    });
+
+    // ── Save PDF ──────────────────────────────────────────────────────────────
+
+    document.getElementById('embed-qr-btn').addEventListener('click', async () => {
+        if (!pdfFile) { alert('Please upload a PDF first'); return; }
+        if (!Object.keys(qrPositions).length) { alert('Please add at least one QR code'); return; }
+
+        try {
             const { PDFDocument } = PDFLib;
+            const doc      = await PDFDocument.load(await pdfFile.arrayBuffer());
+            const pages    = doc.getPages();
+            const tabs     = document.querySelectorAll('.tab-content');
 
-            if (!pdfFile) { alert('Please upload a PDF first'); return; }
-            if (Object.keys(qrPositions).length === 0) { alert('Please add and position at least one QR code'); return; }
+            for (let i = 0; i < tabs.length; i++) {
+                const pos    = qrPositions[i];
+                if (!pos) continue;
+                const canvas = tabs[i].querySelector('.qrcode-container canvas');
+                if (!canvas) continue;
 
-            try {
-                const arrayBuffer = await pdfFile.arrayBuffer();
-                const newPdfDoc = await PDFDocument.load(arrayBuffer);
-                const pdfPages = newPdfDoc.getPages();
+                const page              = pages[pos.pageNum];
+                const { width: pdfW, height: pdfH } = page.getSize();
+                const sizeRatio         = pos.sizeRatio || (QR_DEFAULT_PX / QR_CANVAS_PX);
+                const size              = Math.max(pdfW * 0.04, Math.min(pdfW * sizeRatio, pdfW * 0.35));
+                const x                 = pos.xRatio * pdfW;
+                const y                 = pdfH - pos.yRatio * pdfH - size;
+                const img               = await doc.embedPng(canvas.toDataURL('image/png'));
 
-                const tabs = document.querySelectorAll('.tab-content');
-
-                for (let index = 0; index < tabs.length; index++) {
-                    const pos = qrPositions[index];
-                    if (!pos) continue;
-
-                    const tab = tabs[index];
-                    const qrCanvas = tab.querySelector('.qrcode-container canvas');
-                    if (!qrCanvas) continue;
-
-                    // Use real PDF page number if available (skipped blank pages shift index)
-                    const pageContainer = document.querySelector(`[data-page-num="${pos.pageNum}"]`);
-                    const realPageNum = pageContainer ? parseInt(pageContainer.dataset.pdfPageNum) - 1 : pos.pageNum;
-                    const page = pdfPages[realPageNum];
-                    const { width: pdfW, height: pdfH } = page.getSize();
-
-                    // QR size in PDF points: ~12% of shorter page dimension
-                    const qrSizePdf = Math.min(pdfW, pdfH) * 0.12;
-
-                    // Convert ratios directly to PDF coordinates
-                    // xRatio: 0=left, 1=right  →  pdfX = ratio * pdfW
-                    // yRatio: 0=top (display) = pdfH (pdf), 1=bottom = 0 (pdf)
-                    const pdfX = pos.xRatio * pdfW;
-                    const pdfY = pdfH - (pos.yRatio * pdfH) - qrSizePdf;
-
-                    const pngDataUrl = qrCanvas.toDataURL('image/png');
-                    const pngImage = await newPdfDoc.embedPng(pngDataUrl);
-
-                    page.drawImage(pngImage, {
-                        x: Math.max(0, Math.min(pdfX, pdfW - qrSizePdf)),
-                        y: Math.max(0, Math.min(pdfY, pdfH - qrSizePdf)),
-                        width: qrSizePdf,
-                        height: qrSizePdf
-                    });
-                }
-
-                const modifiedPdfBytes = await newPdfDoc.save();
-                const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'signed-document.pdf';
-                a.click();
-                URL.revokeObjectURL(url);
-
-            } catch (error) {
-                console.error('Save error:', error);
-                alert('Error saving PDF: ' + error.message);
+                page.drawImage(img, {
+                    x: Math.max(0, Math.min(x, pdfW - size)),
+                    y: Math.max(0, Math.min(y, pdfH - size)),
+                    width: size, height: size
+                });
             }
-        });
+
+            const blob = new Blob([await doc.save()], { type: 'application/pdf' });
+            const a    = Object.assign(document.createElement('a'), {
+                href: URL.createObjectURL(blob), download: 'signed-document.pdf'
+            });
+            a.click();
+            URL.revokeObjectURL(a.href);
+
+        } catch (err) {
+            console.error('Save error:', err);
+            alert('Error saving PDF: ' + err.message);
+        }
+    });
+
     </script>
 </body>
-</html>   
+</html>

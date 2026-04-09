@@ -34,6 +34,10 @@
       <!-- Login Card -->
       <div class="login-card">
         <h1 class="login-title" id="formTitle">Login</h1>
+        <p class="login-subtitle">Sign in with your university Google account.</p>
+
+        <div id="googleSignIn" class="google-signin"></div>
+        <div class="separator"><span>or use email</span></div>
         
         <form class="form" id="authForm">
           <div class="input-group" id="usernameGroup" style="display: none;">
@@ -50,6 +54,8 @@
           
           <button type="submit" class="login-button" id="submitBtn">Login</button>
         </form>
+
+        <p class="auth-status" id="authStatus" role="status" aria-live="polite"></p>
         
         <div class="forgot-password">
           <a href="#" class="forgot-link" id="toggleLink">Create Account?</a>
@@ -57,7 +63,7 @@
       </div>
     </div>
   </div>
-
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="../js/login.js"></script>
 </body>
 </html>
